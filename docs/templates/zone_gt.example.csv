@@ -1,0 +1,6 @@
+source,event_type,t_start,t_end,scenario
+gerbang01.mp4,zone_breach,14.0,,pelanggaran batas
+gerbang01.mp4,zone_breach,61.0,,pelanggaran batas cepat
+gerbang01.mp4,negative,0,12,aktivitas aman dalam ROI
+gerbang01.mp4,negative,20,55,mendekati garis tanpa melewati
+gerbang02.mp4,negative,0,120,dewasa lewat gerbang

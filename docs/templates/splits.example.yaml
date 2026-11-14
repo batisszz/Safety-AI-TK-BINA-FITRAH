@@ -1,0 +1,4 @@
+# Daftar video per split. Pisahkan per sesi/hari, BUKAN per frame acak (mencegah kebocoran data).
+train: [sesi01.mp4, sesi02.mp4, sesi03.mp4]
+val:   [sesi04.mp4]
+test:  [sesi05_hari_berbeda.mp4]   # idealnya hari/kondisi cahaya berbeda; dibuka sekali per versi model

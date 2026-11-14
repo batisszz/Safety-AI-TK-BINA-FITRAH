@@ -1,0 +1,9 @@
+# Dataset detektor gerbang. Salin ke data/safezone.yaml
+# Jika memakai dua kelas, set infer.classes: [0, 1] di YAML kamera agar label child/adult terbaca.
+path: data/safezone
+train: images/train
+val: images/val
+test: images/test
+names:
+  0: child
+  1: adult

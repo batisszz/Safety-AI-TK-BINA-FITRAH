@@ -1,0 +1,18 @@
+# Contoh produksi: sumber RTSP dari MediaMTX (jalur C20 pada dokumen C300). Salin jadi configs/cameras.yaml lalu sesuaikan.
+timezone: Asia/Jakarta
+output_dir: outputs
+sinks:
+  - {type: jsonl, path: "outputs/{run}/events_{camera}.jsonl"}
+  - {type: http, url: "${BACKEND_URL}", api_key: "${API_KEY}", outbox: "outputs/outbox_{camera}.db"}
+
+cameras:
+  - id: cam_kelas_a
+    source: {type: rtsp, url: "rtsp://localhost:8554/kelasA", rtsp_transport: tcp, stall_s: 10}
+    modules: [fall]
+    infer: {model: "models/yolov8n-pose_openvino_model", profile: low_cpu, threads: 2}
+  - id: cam_gerbang
+    source: {type: rtsp, url: "rtsp://localhost:8554/gerbang", rtsp_transport: tcp, stall_s: 10}
+    modules: [safezone]
+    infer: {model: "models/yolov8n_openvino_model", profile: low_cpu, imgsz: 480, threads: 2}
+    roi: {file: configs/roi_cam_gerbang.json, margin_frac: 0.02, breach_hold_s: 1.2}
+    drift: {enabled: true, reference: configs/ref_cam_gerbang.jpg, interval_s: 600}

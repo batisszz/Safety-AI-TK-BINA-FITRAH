@@ -1,0 +1,54 @@
+# Konfigurasi utama modul AI Safety.
+# Semua parameter per kamera ada di sini (tidak ada hardcode di kode).
+# Variabel ${NAMA} diambil dari environment atau berkas .env; ${NAMA:-nilai} = nilai bawaan.
+
+timezone: Asia/Jakarta
+output_dir: outputs          # hasil per eksekusi: outputs/<run>/ (events, snapshots, stats)
+
+alerts:
+  cooldown_s: {fall_suspected: 45, fall_confirmed: 45, zone_breach: 30, zone_warning: 30, system_health: 300}
+  max_per_minute: 30         # katup pengaman agar backend tidak banjir event
+  snapshots: true            # snapshot disimpan LOKAL di outputs/<run>/snapshots (tidak dikirim ke cloud)
+  snapshot_dir: snapshots
+  jpeg_quality: 80
+
+sinks:
+  - {type: console}
+  - {type: jsonl, path: "outputs/{run}/events_{camera}.jsonl"}
+  # Aktifkan setelah tim backend siap (isi BACKEND_URL dan API_KEY di .env):
+  # - {type: http, url: "${BACKEND_URL}", api_key: "${API_KEY}", outbox: "outputs/outbox_{camera}.db"}
+
+cameras:
+  # ---- Kamera kelas: Fall Detection (YOLOv8n-pose). Kamera di atas, sudut 30-45 derajat ke bawah.
+  - id: cam_kelas_a
+    source: {type: webcam, index: 0}      # nanti: {type: rtsp, url: "rtsp://localhost:8554/kelasA"}
+    modules: [fall]
+    index : 0
+    infer:
+      model: yolov8n-pose            # setelah ekspor: models/yolov8n-pose_openvino_model (Intel) atau .onnx
+      profile: low_cpu               # low_cpu = imgsz 320, 3 FPS (aman untuk Celeron / i3 lama). normal = 480, 6 FPS
+      # imgsz: 480                   # nilai eksplisit menang atas profil
+      # fps: 4
+      # threads: 2
+    fall: {}                         # semua ambang bawaan = TITIK AWAL; setel dari data (docs/EXPERIMENTS.md)
+    drift: {enabled: false}
+
+  # ---- Kamera gerbang: Safe Zone Detection (YOLOv8n person + crop ROI).
+  - id: cam_gerbang
+    source: {type: file, path: data/simulasi_outdoor_anak.mp4}    # nanti: {type: rtsp, url: "rtsp://localhost:8554/gerbang"}
+    modules: [safezone]
+    infer:
+      model: yolov8n
+      profile: gate
+      imgsz: 640                     # gerbang memakai crop ROI, jadi 480 sering cukup; naikkan ke 640 bila anak jauh terlewat
+    roi:
+      # Gambar dengan: python tools/draw_roi.py --source <video> --camera cam_gerbang --out configs/roi_cam_gerbang.json
+      file: configs/roi_cam_gerbang.json
+      #safe_polygon: [[0.10, 0.90], [0.10, 0.30], [0.90, 0.30], [0.90, 0.90]]   # ternormalisasi 0..1, CONTOH
+      margin_frac: 0.02              # pelanggaran jika kaki di luar garis lebih dari 2% tinggi frame
+      warn_frac: 0.05                # zona peringatan (hanya dicatat) 5% di dalam garis
+      breach_hold_s: 1.2             # harus bertahan di luar selama ini sebelum alarm
+      # child_height_calibration: [[0.30, 0.16], [0.90, 0.30]]   # [[y_norm, tinggi_anak_norm], ...] ukur dari video nyata
+      escort_windows: ["06:30-08:30", "10:00-12:00"]             # jam serah-terima: anak bersama dewasa hanya dicatat
+      active_windows: []             # kosong = aktif sepanjang hari
+    drift: {enabled: false}          # aktifkan setelah ada frame referensi (draw_roi menyimpannya)

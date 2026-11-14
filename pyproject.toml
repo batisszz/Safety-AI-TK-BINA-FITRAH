@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "safety-ai"
+version = "0.1.0"
+description = "Modul AI Safety (Fall Detection dan Safe Zone Detection) untuk SIA TK Bina Fitrah"
+requires-python = ">=3.10"
+dependencies = ["numpy", "opencv-python-headless", "pyyaml", "pydantic>=2"]
+
+[project.optional-dependencies]
+yolo = ["ultralytics"]
+dev = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "."]

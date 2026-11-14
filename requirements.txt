@@ -1,0 +1,17 @@
+# Dependensi inti. Diuji (unit test + simulasi) dengan: numpy 2.5.4, opencv-python-headless 5.0.0.93,
+# pydantic 2.14.3, PyYAML 6.0.3, psutil 7.2.2, Python 3.12.
+# Ultralytics/OpenVINO/ONNX Runtime BELUM diuji di lingkungan pengembangan modul ini (tidak ada model/GPU di sana).
+# Setelah instalasi pertama berhasil di komputer Anda, bekukan versinya:  pip freeze > requirements.lock.txt
+numpy>=1.24
+opencv-python-headless>=4.8   # untuk --show / draw_roi interaktif pakai 'opencv-python' (bukan headless)
+pyyaml>=6.0
+pydantic>=2.5
+psutil>=5.9
+tzdata                         # zona waktu Asia/Jakarta di Windows
+
+# Inferensi (lisensi Ultralytics: AGPL-3.0, periksa sebelum didistribusikan ke sekolah lain)
+ultralytics>=8.3
+
+# Runtime CPU (pilih sesuai prosesor; lihat docs/HARDWARE.md)
+openvino>=2024.0               # Intel (laptop sekolah)
+onnxruntime>=1.17              # AMD (laptop LOQ) / umum
