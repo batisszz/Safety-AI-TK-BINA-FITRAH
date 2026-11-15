@@ -1,0 +1,12 @@
+{
+  "name": "safety-ai-web",
+  "version": "1.0.0",
+  "description": "Website Monitoring Terpisah untuk Safety AI TK Bina Fitrah",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": ["cctv", "safety", "fall-detection", "safezone", "ai"],
+  "author": "Safety AI Team",
+  "license": "ISC"
+}

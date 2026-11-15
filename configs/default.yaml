@@ -21,26 +21,26 @@ sinks:
 cameras:
   # ---- Kamera kelas: Fall Detection (YOLOv8n-pose). Kamera di atas, sudut 30-45 derajat ke bawah.
   - id: cam_kelas_a
-    source: {type: webcam, index: 0}      # nanti: {type: rtsp, url: "rtsp://localhost:8554/kelasA"}
+    source: {type: rtsp, url: "rtsp://Satriani:batisganteng159@192.168.18.146:554/stream1"}      # nanti: {type: rtsp, url: "rtsp://localhost:8554/kelasA"}
     modules: [fall]
-    index : 0
+    #index : 0
     infer:
       model: yolov8n-pose            # setelah ekspor: models/yolov8n-pose_openvino_model (Intel) atau .onnx
-      profile: low_cpu               # low_cpu = imgsz 320, 3 FPS (aman untuk Celeron / i3 lama). normal = 480, 6 FPS
-      # imgsz: 480                   # nilai eksplisit menang atas profil
-      # fps: 4
+      profile: normal               # low_cpu = imgsz 320, 3 FPS (aman untuk Celeron / i3 lama). normal = 480, 6 FPS
+      imgsz: 480                   # nilai eksplisit menang atas profil
+      fps: 11
       # threads: 2
     fall: {}                         # semua ambang bawaan = TITIK AWAL; setel dari data (docs/EXPERIMENTS.md)
     drift: {enabled: false}
 
   # ---- Kamera gerbang: Safe Zone Detection (YOLOv8n person + crop ROI).
   - id: cam_gerbang
-    source: {type: file, path: data/simulasi_outdoor_anak.mp4}    # nanti: {type: rtsp, url: "rtsp://localhost:8554/gerbang"}
+    source: {type: rtsp, url: "rtsp://Satriani:batisganteng159@192.168.18.146:554/stream2"}    # nanti: {type: rtsp, url: "rtsp://localhost:8554/gerbang"}
     modules: [safezone]
     infer:
       model: yolov8n
       profile: gate
-      imgsz: 640                     # gerbang memakai crop ROI, jadi 480 sering cukup; naikkan ke 640 bila anak jauh terlewat
+      imgsz: 480                     # gerbang memakai crop ROI, jadi 480 sering cukup; naikkan ke 640 bila anak jauh terlewat
     roi:
       # Gambar dengan: python tools/draw_roi.py --source <video> --camera cam_gerbang --out configs/roi_cam_gerbang.json
       file: configs/roi_cam_gerbang.json

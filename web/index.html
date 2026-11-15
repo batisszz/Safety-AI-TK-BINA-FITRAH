@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIA TK Bina Fitrah - Safety AI Monitoring</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="navbar">
+    <div class="nav-brand">
+      <div class="logo-badge">🛡️</div>
+      <div class="brand-text">
+        <h1>TK BINA FITRAH — SAFETY AI</h1>
+        <p>Sistem Pemantauan Terintegrasi CCTV & AI (Fall & Safe Zone Detection)</p>
+      </div>
+    </div>
+
+    <div class="nav-actions">
+      <!-- Status Koneksi SSE -->
+      <div class="status-pill">
+        <span class="pulse-dot" id="conn-dot"></span>
+        <span id="conn-text">MENGHUBUNGKAN...</span>
+      </div>
+
+      <!-- Jam Digital WIB -->
+      <div class="clock-display" id="digital-clock">--:--:-- WIB</div>
+
+      <!-- Toggle Audio -->
+      <button class="btn-icon" id="btn-toggle-audio" title="Matikan/Aktifkan Suara Alarm">
+        🔔 Audio: Aktif
+      </button>
+
+      <!-- Simulasi Test Alert -->
+      <button class="btn-icon" onclick="triggerSimulationAlert('fall_confirmed')" title="Picu simulasi alert jatuh untuk uji audio & UI">
+        ⚡ Uji Jatuh
+      </button>
+      <button class="btn-icon" onclick="triggerSimulationAlert('zone_breach')" title="Picu simulasi pelanggaran zona">
+        ⚡ Uji Zona
+      </button>
+
+      <!-- Pengaturan API -->
+      <button class="btn-icon" onclick="openSettingsModal()" title="Pengaturan URL API Server">
+        ⚙️ API URL
+      </button>
+    </div>
+  </header>
+
+  <!-- Summary Metrics Bar -->
+  <section class="summary-bar">
+    <div class="metric-card">
+      <div class="metric-info">
+        <p>Total Notifikasi</p>
+        <h3 id="metric-total-alerts">0</h3>
+      </div>
+      <div class="metric-icon blue">📢</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-info">
+        <p>Belum Diverifikasi</p>
+        <h3 id="metric-unresolved" style="color: var(--status-danger);">0</h3>
+      </div>
+      <div class="metric-icon red">⏳</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-info">
+        <p>Deteksi Anak Jatuh</p>
+        <h3 id="metric-falls">0</h3>
+      </div>
+      <div class="metric-icon amber">🚼</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-info">
+        <p>Pelanggaran Zona Aman</p>
+        <h3 id="metric-zones">0</h3>
+      </div>
+      <div class="metric-icon green">🚧</div>
+    </div>
+  </section>
+
+  <!-- Main Content Grid -->
+  <main class="dashboard-container">
+
+    <!-- 2 Cameras Grid -->
+    <section class="cameras-grid">
+
+      <!-- Camera 1: Kelas A (Fall Detection) -->
+      <article class="camera-card" id="card-cam-kelas">
+        <div class="card-header">
+          <div class="cam-title-group">
+            <span class="cam-badge">CAM 1</span>
+            <div>
+              <h2>Kamera Kelas A — Fall Detection</h2>
+              <span style="font-size: 0.72rem; color: var(--text-muted);">YOLOv8n-Pose (17 Keypoints) + ByteTrack</span>
+            </div>
+          </div>
+          <span class="cam-status-pill status-safe-pill" id="badge-status-kelas">AMAN / NORMAL</span>
+        </div>
+
+        <div class="video-wrapper" id="wrapper-kelas">
+          <!-- Status Tag Pojok Atas Video -->
+          <div class="video-overlay-status">
+            <span class="overlay-pill">
+              <span class="pulse-dot"></span> LIVE
+            </span>
+            <span class="overlay-pill" id="fps-overlay-kelas">POSE ESTIMATION</span>
+          </div>
+
+          <!-- Aliran Video MJPEG -->
+          <img class="video-stream" id="stream-kelas" alt="Aliran video Kamera Kelas A" crossorigin="anonymous">
+
+          <!-- Kontrol Video -->
+          <div class="video-controls">
+            <button class="ctrl-btn" onclick="downloadSnapshot('cam_kelas_a')" title="Ambil Snapshot">📸</button>
+            <button class="ctrl-btn" onclick="initCameraStreams()" title="Muat Ulang Stream">🔄</button>
+            <button class="ctrl-btn" onclick="toggleFullscreen('wrapper-kelas')" title="Layar Penuh">⛶</button>
+          </div>
+        </div>
+
+        <!-- Telemetri Bawah Video -->
+        <div class="telemetry-bar">
+          <div class="telemetry-item">
+            <span>Frame Rate:</span>
+            <span class="telemetry-val" id="fps-kelas">-- FPS</span>
+          </div>
+          <div class="telemetry-item">
+            <span>Inferensi:</span>
+            <span class="telemetry-val" id="lat-kelas">-- ms</span>
+          </div>
+          <div class="telemetry-item">
+            <span>Terdeteksi:</span>
+            <span class="telemetry-val" id="tracks-kelas">0 Orang</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- Camera 2: Gerbang Utama (Safe Zone Detection) -->
+      <article class="camera-card" id="card-cam-gerbang">
+        <div class="card-header">
+          <div class="cam-title-group">
+            <span class="cam-badge purple">CAM 2</span>
+            <div>
+              <h2>Kamera Gerbang — Safe Zone Detection</h2>
+              <span style="font-size: 0.72rem; color: var(--text-muted);">YOLOv8n (Person) + ROI Polygon Geometri</span>
+            </div>
+          </div>
+          <span class="cam-status-pill status-safe-pill" id="badge-status-gerbang">AMAN / NORMAL</span>
+        </div>
+
+        <div class="video-wrapper" id="wrapper-gerbang">
+          <!-- Status Tag Pojok Atas Video -->
+          <div class="video-overlay-status">
+            <span class="overlay-pill">
+              <span class="pulse-dot"></span> LIVE
+            </span>
+            <span class="overlay-pill">SAFE ZONE ROI</span>
+          </div>
+
+          <!-- Aliran Video MJPEG -->
+          <img class="video-stream" id="stream-gerbang" alt="Aliran video Kamera Gerbang" crossorigin="anonymous">
+
+          <!-- Kontrol Video -->
+          <div class="video-controls">
+            <button class="ctrl-btn" onclick="downloadSnapshot('cam_gerbang')" title="Ambil Snapshot">📸</button>
+            <button class="ctrl-btn" onclick="initCameraStreams()" title="Muat Ulang Stream">🔄</button>
+            <button class="ctrl-btn" onclick="toggleFullscreen('wrapper-gerbang')" title="Layar Penuh">⛶</button>
+          </div>
+        </div>
+
+        <!-- Telemetri Bawah Video -->
+        <div class="telemetry-bar">
+          <div class="telemetry-item">
+            <span>Frame Rate:</span>
+            <span class="telemetry-val" id="fps-gerbang">-- FPS</span>
+          </div>
+          <div class="telemetry-item">
+            <span>Inferensi:</span>
+            <span class="telemetry-val" id="lat-gerbang">-- ms</span>
+          </div>
+          <div class="telemetry-item">
+            <span>Terdeteksi:</span>
+            <span class="telemetry-val" id="tracks-gerbang">0 Orang</span>
+          </div>
+        </div>
+      </article>
+
+    </section>
+
+    <!-- Real-Time Alert Feed & Management Panel -->
+    <section class="alert-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <h2>Pusat Peringatan & Notifikasi (Live Alerts)</h2>
+          <span class="badge-count" id="badge-unresolved-count">0</span>
+        </div>
+
+        <div class="filter-group">
+          <button class="filter-btn active" data-filter="all">Semua Alert</button>
+          <button class="filter-btn" data-filter="fall">Fall Detection</button>
+          <button class="filter-btn" data-filter="safezone">Safe Zone</button>
+          <button class="filter-btn" data-filter="unresolved">Belum Diverifikasi</button>
+        </div>
+      </div>
+
+      <!-- Daftar Alert -->
+      <div class="alert-list" id="alert-feed">
+        <!-- Rendered by app.js -->
+        <div class="alert-empty">
+          <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">🛡️</div>
+          <p>Memuat riwayat alert dari modul Safety AI...</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modal Verifikasi Alert -->
+  <div class="modal-backdrop" id="modal-verify">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modal-alert-title">Verifikasi Insiden</h3>
+        <button class="modal-close" onclick="closeVerifyModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="modal-alert-desc" style="font-size: 0.85rem; color: var(--text-secondary);"></p>
+
+        <!-- Preview Snapshot Kejadian -->
+        <img id="modal-snapshot-img" class="modal-img-preview" alt="Snapshot Kejadian" src="">
+
+        <div class="form-group">
+          <label for="verify-operator">Nama Guru / Operator Piket:</label>
+          <input type="text" id="verify-operator" class="form-control" value="Guru Piket" placeholder="Contoh: Bu Siti">
+        </div>
+
+        <div class="form-group">
+          <label for="verify-note">Catatan Tindakan / Keterangan:</label>
+          <textarea id="verify-note" class="form-control" rows="2" placeholder="Contoh: Anak terpeleset saat bermain balok, sudah ditolong dan aman."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-sm btn-warning" onclick="submitAlertVerification('False Alarm')">
+          ❌ Alarm Palsu
+        </button>
+        <button class="btn-sm btn-primary" onclick="submitAlertVerification('Acknowledged')">
+          👁️ Verifikasi Valid
+        </button>
+        <button class="btn-sm btn-success" onclick="submitAlertVerification('Resolved')">
+          ✅ Selesai / Aman
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Pengaturan API -->
+  <div class="modal-backdrop" id="modal-settings">
+    <div class="modal-box" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3>Pengaturan Koneksi API</h3>
+        <button class="modal-close" onclick="closeSettingsModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="setting-api-url">Safety AI API Base URL:</label>
+          <input type="text" id="setting-api-url" class="form-control" placeholder="http://localhost:8000">
+          <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.25rem;">
+            Gunakan <code>http://localhost:8000</code> jika web dijalankan secara terpisah (misal di port 3000 atau server lain).
+          </span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-sm" onclick="closeSettingsModal()">Batal</button>
+        <button class="btn-sm btn-primary" onclick="saveApiSettings()">Simpan & Hubungkan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <span>Sistem Informasi Akademik Terintegrasi CCTV & AI &bull; TK Bina Fitrah</span>
+    <span>Modul Safety AI v1.0 &bull; YOLOv8-Pose &amp; Safe Zone Geometri</span>
+  </footer>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

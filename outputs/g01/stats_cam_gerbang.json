@@ -1,0 +1,16 @@
+{
+  "camera_id": "cam_gerbang",
+  "frames": 487,
+  "inferred": 115,
+  "skipped_by_gate": 372,
+  "infer_ms_max": 1345.1890000142157,
+  "stream_seconds": 32.076,
+  "wall_seconds": 10.87,
+  "infer_ms_avg": 35.33,
+  "effective_fps": 44.8,
+  "alerts": {
+    "emitted": 0,
+    "cooldown_dropped": 0,
+    "rate_dropped": 0
+  }
+}

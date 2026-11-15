@@ -12,6 +12,10 @@ tzdata                         # zona waktu Asia/Jakarta di Windows
 # Inferensi (lisensi Ultralytics: AGPL-3.0, periksa sebelum didistribusikan ke sekolah lain)
 ultralytics>=8.3
 
+# Web API & Streaming
+fastapi>=0.110.0
+uvicorn>=0.28.0
+
 # Runtime CPU (pilih sesuai prosesor; lihat docs/HARDWARE.md)
 openvino>=2024.0               # Intel (laptop sekolah)
 onnxruntime>=1.17              # AMD (laptop LOQ) / umum

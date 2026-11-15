@@ -115,9 +115,24 @@ Lihat `docs/INTEGRATION.md`: kontrak event JSON, endpoint penerima contoh (Node.
 
 `data/`, `snapshots/`, `outputs/`, video, gambar, model, dan `.env` ada di `.gitignore`. Jangan memaksa menambahkannya. Data anak di bawah umur, dan perekamannya memerlukan persetujuan sekolah dan orang tua.
 
+## Web API & Website Dashboard Monitoring
+
+Modul menyediakan server API FastAPI dan antarmuka web monitoring real-time untuk memantau 2 kamera sekaligus (Kamera 1: Fall Detection di Kelas A, Kamera 2: Safe Zone di Gerbang) serta menerima notifikasi alert secara live:
+
+```bash
+# Jalankan API Server & Web Dashboard (All-in-One):
+python -m safety_ai.api.server --port 8000
+# Akses Dashboard di: http://localhost:8000/
+# Dokumentasi Swagger API di: http://localhost:8000/docs
+
+# Atau jalankan website secara terpisah:
+node web/server.js   # http://localhost:3000
+```
+
+Panduan integrasi lengkap ada di [`docs/API_WEB_GUIDE.md`](docs/API_WEB_GUIDE.md).
+
 ## Belum diimplementasi
 
-- Endpoint FastAPI (health/config) dan penerimaan *Acknowledged / False Alarm* dari dashboard (`FallModule.acknowledge()` sudah ada, tetapi belum ada jalur masuknya).
 - Klip video pra-kejadian (ring buffer). Yang ada baru snapshot.
 - Penyimpanan umpan balik False Alarm sebagai calon hard negative (SAI-FR-13).
 - Mode INT8 dan kuantisasi.

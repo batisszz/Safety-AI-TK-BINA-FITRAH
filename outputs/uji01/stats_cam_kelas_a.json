@@ -1,0 +1,16 @@
+{
+  "camera_id": "cam_kelas_a",
+  "frames": 172,
+  "inferred": 172,
+  "skipped_by_gate": 0,
+  "infer_ms_max": 1606.6983999917284,
+  "stream_seconds": 57.0,
+  "wall_seconds": 6.88,
+  "infer_ms_avg": 29.28,
+  "effective_fps": 25.0,
+  "alerts": {
+    "emitted": 2,
+    "cooldown_dropped": 0,
+    "rate_dropped": 0
+  }
+}

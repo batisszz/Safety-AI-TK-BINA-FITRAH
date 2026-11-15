@@ -1,0 +1,10 @@
+numpy
+opencv-python-headless
+pyyaml
+pydantic>=2
+
+[dev]
+pytest
+
+[yolo]
+ultralytics

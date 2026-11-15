@@ -1,30 +1,30 @@
 # Data anak, rekaman, snapshot: JANGAN pernah di-commit (data anak di bawah umur)
-data/
-snapshots/
-outputs/
-runs/
-*.mp4
-*.avi
-*.mkv
-*.jpg
-*.jpeg
-*.png
-!docs/**/*.png
+#data/
+#snapshots/
+#outputs/
+#runs/
+#*.mp4
+#*.avi
+#*.mkv
+#*.jpg
+#*.jpeg
+#*.png
+#!docs/**/*.png
 # Model dan hasil ekspor
-models/*.pt
-models/*.onnx
-models/*_openvino_model/
-models/*.engine
+#models/*.pt
+#models/*.onnx
+#models/*_openvino_model/
+#models/*.engine
 # Rahasia
-.env
-*.db
+#.env
+#*.db
 # Python
-__pycache__/
-*.pyc
-.venv/
-.pytest_cache/
-*.egg-info/
+#__pycache__/
+#*.pyc
+#.venv/
+#.pytest_cache/
+#*.egg-info/
 # Konfigurasi lokal
-configs/cameras.yaml
-configs/roi_*.json
-configs/ref_*.jpg
+#configs/cameras.yaml
+#configs/roi_*.json
+#configs/ref_*.jpg

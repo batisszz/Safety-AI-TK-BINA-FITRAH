@@ -13,9 +13,9 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 # Profil siap pakai untuk CPU lemah. Nilai eksplisit di YAML selalu menang atas profil.
 PROFILES = {
-    "low_cpu": {"imgsz": 320, "fps": 20.0},   # Celeron / i3 lama (belum diukur, lihat docs/HARDWARE.md)
+    "low_cpu": {"imgsz": 320, "fps": 3.0},   # Celeron / i3 lama (belum diukur, lihat docs/HARDWARE.md)
     "normal": {"imgsz": 480, "fps": 25.0},    # i5/Ryzen
-    "gate": {"imgsz": 640, "fps": 30.0},      # kamera gerbang (crop ROI)
+    "gate": {"imgsz": 480, "fps": 25.0},      # kamera gerbang (crop ROI)
 }
 
 
