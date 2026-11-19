@@ -1,0 +1,1 @@
+{"event_id": "8e23cdd8-c7b6-45a0-a731-7b903a5e6bc7", "camera_id": "cam_gerbang", "alert_type": "zone_warning", "level": 0, "track_id": 4, "confidence": 0.593, "timestamp": "2026-11-19T13:58:13+07:00", "snapshot_path": null, "meta": {"d_norm": 0.0487, "label": "unknown", "escorted": false, "foot": [0.6338, 0.4197], "source": "simulasi_outdoor_anak.mp4", "stream_ts": 4.95}}

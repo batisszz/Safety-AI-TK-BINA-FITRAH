@@ -1,0 +1,42 @@
+source,event_type,t_start,t_end,scenario
+sesi01.mp4,negative,0.0,28.0,duduk di lantai dan bermain balok
+sesi01.mp4,fall,35.0,,jatuh depan saat berlari kecil
+sesi01.mp4,negative,42.0,86.0,merangkak dan tiarap bermain di karpet
+sesi01.mp4,fall,92.5,,jatuh samping tersandung mainan
+sesi02.mp4,fall,12.0,,jatuh belakang saat mundur
+sesi02.mp4,negative,18.0,34.0,bermain pura-pura dan duduk di karpet
+sesi02.mp4,fall,40.0,,jatuh samping saat mendorong mainan
+sesi02.mp4,negative,46.0,75.0,merangkak dan mendorong mobil-mobilan
+sesi03.mp4,fall,8.5,,jatuh samping saat melempar bola
+sesi03.mp4,negative,15.0,42.0,berdiri dan bermain lempar bola
+sesi03.mp4,negative,47.0,72.0,jongkok dan meraih mainan di lantai
+sesi03.mp4,fall,78.5,,jatuh depan tersandung kaki kursi
+sesi04.mp4,fall,7.2,,jatuh samping di dekat meja belajar
+sesi04.mp4,fall,18.5,,jatuh belakang saat kehilangan keseimbangan
+sesi04.mp4,negative,24.0,50.0,berdiri dan meraih mainan di atas meja
+sesi04.mp4,negative,55.0,82.0,duduk di kursi kecil dan menggambar
+sesi05.mp4,fall,12.5,,jatuh samping saat berputar
+sesi05.mp4,negative,18.0,42.0,berdiri dan berjalan santai di sekitar ruangan
+sesi05.mp4,negative,47.0,72.0,duduk di lantai dan menyusun puzzle
+sesi05.mp4,fall,79.0,,jatuh depan saat bangkit dari lantai
+sesi06.mp4,negative,0.0,24.0,duduk cepat ke lantai saat bermain
+sesi06.mp4,fall,31.0,,jatuh depan dari posisi berdiri
+sesi06.mp4,negative,38.0,66.0,tiarap membaca buku bergambar
+sesi06.mp4,fall,74.0,,jatuh pelan (lemas) ke samping
+sesi07.mp4,negative,0.0,22.0,aktivitas wajar statis di sudut baca
+sesi07.mp4,fall,28.5,,jatuh samping dengan oklusi parsial meja
+sesi07.mp4,negative,35.0,62.0,anak berkerumun mengambil mainan di kotak
+sesi07.mp4,fall,69.0,,jatuh belakang sebagian terhalang kursi
+sesi08.mp4,negative,0.0,26.0,berjalan dan berlari ringan saat cahaya jendela berubah
+sesi08.mp4,fall,33.0,,jatuh depan di area bayangan jendela
+sesi08.mp4,negative,40.0,68.0,jongkok dan berdiri berulang saat senam pagi
+sesi08.mp4,fall,75.5,,jatuh samping di area silau matahari pagi
+sesi09.mp4,fall,14.0,,jatuh belakang saat melompat kecil
+sesi09.mp4,negative,20.0,48.0,menari dan bergerak aktif mengikuti lagu
+sesi09.mp4,fall,55.0,,jatuh depan saat mengejar bola
+sesi09.mp4,negative,62.0,90.0,duduk bersila dan merapikan mainan
+sesi10.mp4,negative,0.0,30.0,berdiri dan berbaris di dalam kelas
+sesi10.mp4,fall,37.5,,jatuh samping saat tersandung tas
+sesi10.mp4,negative,44.0,74.0,merangkak melewati terowongan mainan
+sesi10.mp4,fall,81.0,,jatuh belakang di dekat pintu kelas
+sesi10.mp4,negative,87.0,110.0,duduk tenang menunggu jemputan

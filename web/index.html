@@ -1,228 +1,381 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SIA TK Bina Fitrah - Safety AI Monitoring</title>
+  <title>TK Bina Fitrah - Dashboard Pemantauan</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
 </head>
+
 <body>
 
-  <!-- Top Navbar -->
+  <!-- Ikon (sprite SVG) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-cap" viewBox="0 0 24 24">
+      <path
+        d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z" />
+      <path d="M22 10v6" />
+      <path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5" />
+    </symbol>
+    <symbol id="i-video" viewBox="0 0 24 24">
+      <path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5" />
+      <rect x="2" y="6" width="14" height="12" rx="2" />
+    </symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24">
+      <path d="M8 2v4" />
+      <path d="M16 2v4" />
+      <rect width="18" height="18" x="3" y="4" rx="2" />
+      <path d="M3 10h18" />
+    </symbol>
+    <symbol id="i-bot" viewBox="0 0 24 24">
+      <path d="M12 8V4H8" />
+      <rect width="16" height="12" x="4" y="8" rx="2" />
+      <path d="M2 14h2" />
+      <path d="M20 14h2" />
+      <path d="M15 13v2" />
+      <path d="M9 13v2" />
+    </symbol>
+    <symbol id="i-ban" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10" />
+      <path d="m4.9 4.9 14.2 14.2" />
+    </symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24">
+      <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+      <path d="M21 3v5h-5" />
+      <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+      <path d="M8 16H3v5" />
+    </symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24">
+      <path d="M15 3h6v6" />
+      <path d="m21 3-7 7" />
+      <path d="m3 21 7-7" />
+      <path d="M9 21H3v-6" />
+    </symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24">
+      <path
+        d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z" />
+      <circle cx="12" cy="13" r="3" />
+    </symbol>
+    <symbol id="i-users" viewBox="0 0 24 24">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </symbol>
+    <symbol id="i-smile" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+      <path d="M9 9h.01" />
+      <path d="M15 9h.01" />
+    </symbol>
+    <symbol id="i-history" viewBox="0 0 24 24">
+      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+      <path d="M3 3v5h5" />
+      <path d="M12 7v5l4 2" />
+    </symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24">
+      <path d="M5 12h14" />
+      <path d="m12 5 7 7-7 7" />
+    </symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24">
+      <path d="m6 9 6 6 6-6" />
+    </symbol>
+    <symbol id="i-more" viewBox="0 0 24 24">
+      <circle cx="12" cy="5" r="1" />
+      <circle cx="12" cy="12" r="1" />
+      <circle cx="12" cy="19" r="1" />
+    </symbol>
+  </svg>
+
+  <!-- ===================== NAVBAR ===================== -->
   <header class="navbar">
-    <div class="nav-brand">
-      <div class="logo-badge">🛡️</div>
-      <div class="brand-text">
-        <h1>TK BINA FITRAH — SAFETY AI</h1>
-        <p>Sistem Pemantauan Terintegrasi CCTV & AI (Fall & Safe Zone Detection)</p>
-      </div>
+    <div class="nav-left">
+      <div class="logo-badge"><svg class="ic">
+          <use href="#i-cap" />
+        </svg></div>
+      <span class="brand-name">TK Bina Fitrah</span>
+      <a class="nav-pill" href="#"><svg class="ic">
+          <use href="#i-video" />
+        </svg> Dashboard Pemantauan</a>
     </div>
 
-    <div class="nav-actions">
-      <!-- Status Koneksi SSE -->
+    <div class="nav-right">
+      <!-- Status koneksi SSE (dipakai app.js) -->
       <div class="status-pill">
         <span class="pulse-dot" id="conn-dot"></span>
         <span id="conn-text">MENGHUBUNGKAN...</span>
       </div>
 
-      <!-- Jam Digital WIB -->
-      <div class="clock-display" id="digital-clock">--:--:-- WIB</div>
+      <div class="user-menu-wrap">
+        <button class="user-pill" id="user-pill" type="button" aria-haspopup="true" aria-expanded="false">
+          <span class="user-text"><b>Administator</b><small>Guru</small></span>
+          <span class="avatar">J</span>
+          <svg class="ic chev">
+            <use href="#i-chevron" />
+          </svg>
+        </button>
 
-      <!-- Toggle Audio -->
-      <button class="btn-icon" id="btn-toggle-audio" title="Matikan/Aktifkan Suara Alarm">
-        🔔 Audio: Aktif
-      </button>
-
-      <!-- Simulasi Test Alert -->
-      <button class="btn-icon" onclick="triggerSimulationAlert('fall_confirmed')" title="Picu simulasi alert jatuh untuk uji audio & UI">
-        ⚡ Uji Jatuh
-      </button>
-      <button class="btn-icon" onclick="triggerSimulationAlert('zone_breach')" title="Picu simulasi pelanggaran zona">
-        ⚡ Uji Zona
-      </button>
-
-      <!-- Pengaturan API -->
-      <button class="btn-icon" onclick="openSettingsModal()" title="Pengaturan URL API Server">
-        ⚙️ API URL
-      </button>
+        <div class="user-dropdown" id="user-dropdown">
+          <button class="menu-item" id="btn-toggle-audio" type="button">🔔 Audio: Aktif</button>
+          <button class="menu-item" type="button" onclick="triggerSimulationAlert('fall_confirmed')">⚡ Uji Alert
+            Jatuh</button>
+          <button class="menu-item" type="button" onclick="triggerSimulationAlert('zone_breach')">⚡ Uji Alert
+            Zona</button>
+          <button class="menu-item" type="button" onclick="openSettingsModal()">⚙️ Pengaturan API URL</button>
+        </div>
+      </div>
     </div>
   </header>
 
-  <!-- Summary Metrics Bar -->
-  <section class="summary-bar">
-    <div class="metric-card">
-      <div class="metric-info">
-        <p>Total Notifikasi</p>
-        <h3 id="metric-total-alerts">0</h3>
-      </div>
-      <div class="metric-icon blue">📢</div>
-    </div>
+  <!-- ===================== KONTEN UTAMA ===================== -->
+  <main class="page">
 
-    <div class="metric-card">
-      <div class="metric-info">
-        <p>Belum Diverifikasi</p>
-        <h3 id="metric-unresolved" style="color: var(--status-danger);">0</h3>
-      </div>
-      <div class="metric-icon red">⏳</div>
-    </div>
+    <!-- ---------- Kolom kiri ---------- -->
+    <div class="col-main">
 
-    <div class="metric-card">
-      <div class="metric-info">
-        <p>Deteksi Anak Jatuh</p>
-        <h3 id="metric-falls">0</h3>
-      </div>
-      <div class="metric-icon amber">🚼</div>
-    </div>
+      <section class="hero">
+        <div>
+          <p class="hero-hello">Selamat datang kembali,</p>
+          <h1>Dashboard Pemantauan<br>Live Streaming CCTV</h1>
+          <p class="hero-sub">Berikut ringkasan aktivitas hari ini.</p>
+        </div>
+        <button class="btn-outline" type="button" onclick="triggerSimulationAlert('fall_confirmed')">Simulasi Notif
+          Darurat AI</button>
+      </section>
 
-    <div class="metric-card">
-      <div class="metric-info">
-        <p>Pelanggaran Zona Aman</p>
-        <h3 id="metric-zones">0</h3>
-      </div>
-      <div class="metric-icon green">🚧</div>
-    </div>
-  </section>
+      <!-- Kartu video -->
+      <section class="card video-card">
 
-  <!-- Main Content Grid -->
-  <main class="dashboard-container">
+        <div class="cam-tabs" role="tablist">
+          <button class="cam-tab active" type="button" data-cam="kelas" role="tab">Kamera Kelas A</button>
+          <button class="cam-tab" type="button" data-cam="gerbang" role="tab">Kamera Gerbang</button>
+        </div>
 
-    <!-- 2 Cameras Grid -->
-    <section class="cameras-grid">
+        <!-- Kamera 1: Kelas A -->
+        <article class="cam-pane active offline" id="card-cam-kelas" data-cam="kelas">
+          <div class="video-wrapper" id="wrapper-kelas">
+            <img class="video-stream" id="stream-kelas" alt="Aliran video Kamera Kelas A" crossorigin="anonymous">
 
-      <!-- Camera 1: Kelas A (Fall Detection) -->
-      <article class="camera-card" id="card-cam-kelas">
-        <div class="card-header">
-          <div class="cam-title-group">
-            <span class="cam-badge">CAM 1</span>
-            <div>
-              <h2>Kamera Kelas A — Fall Detection</h2>
-              <span style="font-size: 0.72rem; color: var(--text-muted);">YOLOv8n-Pose (17 Keypoints) + ByteTrack</span>
+            <div class="video-top-left">
+              <span class="pill-dark"><span class="rec-dot"></span> LIVE · 720P</span>
+              <button class="pill-light" type="button" data-action="playback">Buka Playback</button>
+            </div>
+            <span class="cam-status-pill status-safe-pill" id="badge-status-kelas">AMAN / NORMAL</span>
+
+            <div class="offline-overlay">
+              <div class="offline-icon"><svg class="ic">
+                  <use href="#i-ban" />
+                </svg></div>
+              <h3>Kamera Offline</h3>
+              <p>Sedang dalam Perbaikan</p>
+              <button class="pill-light" type="button" onclick="initCameraStreams()"><svg class="ic">
+                  <use href="#i-refresh" />
+                </svg> Coba Hubungkan Ulang</button>
+            </div>
+
+            <div class="video-bottom-right">
+              <button class="pill-light" type="button" onclick="toggleFullscreen('wrapper-kelas')"><svg class="ic">
+                  <use href="#i-expand" />
+                </svg> Layar Penuh</button>
+              <button class="pill-light" type="button" onclick="downloadSnapshot('cam_kelas_a')"><svg class="ic">
+                  <use href="#i-camera" />
+                </svg> Foto</button>
             </div>
           </div>
-          <span class="cam-status-pill status-safe-pill" id="badge-status-kelas">AMAN / NORMAL</span>
-        </div>
 
-        <div class="video-wrapper" id="wrapper-kelas">
-          <!-- Status Tag Pojok Atas Video -->
-          <div class="video-overlay-status">
-            <span class="overlay-pill">
-              <span class="pulse-dot"></span> LIVE
-            </span>
-            <span class="overlay-pill" id="fps-overlay-kelas">POSE ESTIMATION</span>
+          <div class="telemetry">
+            <span>Fall Detection · YOLOv8n-Pose + ByteTrack</span>
+            <span>Frame rate <b id="fps-kelas">-- FPS</b></span>
+            <span>Inferensi <b id="lat-kelas">-- ms</b></span>
+            <span>Terdeteksi <b id="tracks-kelas">0 Orang</b></span>
           </div>
+        </article>
 
-          <!-- Aliran Video MJPEG -->
-          <img class="video-stream" id="stream-kelas" alt="Aliran video Kamera Kelas A" crossorigin="anonymous">
+        <!-- Kamera 2: Gerbang -->
+        <article class="cam-pane offline" id="card-cam-gerbang" data-cam="gerbang">
+          <div class="video-wrapper" id="wrapper-gerbang">
+            <img class="video-stream" id="stream-gerbang" alt="Aliran video Kamera Gerbang" crossorigin="anonymous">
 
-          <!-- Kontrol Video -->
-          <div class="video-controls">
-            <button class="ctrl-btn" onclick="downloadSnapshot('cam_kelas_a')" title="Ambil Snapshot">📸</button>
-            <button class="ctrl-btn" onclick="initCameraStreams()" title="Muat Ulang Stream">🔄</button>
-            <button class="ctrl-btn" onclick="toggleFullscreen('wrapper-kelas')" title="Layar Penuh">⛶</button>
-          </div>
-        </div>
+            <div class="video-top-left">
+              <span class="pill-dark"><span class="rec-dot"></span> LIVE · 720P</span>
+              <button class="pill-light" type="button" data-action="playback">Buka Playback</button>
+            </div>
+            <span class="cam-status-pill status-safe-pill" id="badge-status-gerbang">AMAN / NORMAL</span>
 
-        <!-- Telemetri Bawah Video -->
-        <div class="telemetry-bar">
-          <div class="telemetry-item">
-            <span>Frame Rate:</span>
-            <span class="telemetry-val" id="fps-kelas">-- FPS</span>
-          </div>
-          <div class="telemetry-item">
-            <span>Inferensi:</span>
-            <span class="telemetry-val" id="lat-kelas">-- ms</span>
-          </div>
-          <div class="telemetry-item">
-            <span>Terdeteksi:</span>
-            <span class="telemetry-val" id="tracks-kelas">0 Orang</span>
-          </div>
-        </div>
-      </article>
+            <div class="offline-overlay">
+              <div class="offline-icon"><svg class="ic">
+                  <use href="#i-ban" />
+                </svg></div>
+              <h3>Kamera Offline</h3>
+              <p>Sedang dalam Perbaikan</p>
+              <button class="pill-light" type="button" onclick="initCameraStreams()"><svg class="ic">
+                  <use href="#i-refresh" />
+                </svg> Coba Hubungkan Ulang</button>
+            </div>
 
-      <!-- Camera 2: Gerbang Utama (Safe Zone Detection) -->
-      <article class="camera-card" id="card-cam-gerbang">
-        <div class="card-header">
-          <div class="cam-title-group">
-            <span class="cam-badge purple">CAM 2</span>
-            <div>
-              <h2>Kamera Gerbang — Safe Zone Detection</h2>
-              <span style="font-size: 0.72rem; color: var(--text-muted);">YOLOv8n (Person) + ROI Polygon Geometri</span>
+            <div class="video-bottom-right">
+              <button class="pill-light" type="button" onclick="toggleFullscreen('wrapper-gerbang')"><svg class="ic">
+                  <use href="#i-expand" />
+                </svg> Layar Penuh</button>
+              <button class="pill-light" type="button" onclick="downloadSnapshot('cam_gerbang')"><svg class="ic">
+                  <use href="#i-camera" />
+                </svg> Foto</button>
             </div>
           </div>
-          <span class="cam-status-pill status-safe-pill" id="badge-status-gerbang">AMAN / NORMAL</span>
+
+          <div class="telemetry">
+            <span>Safe Zone · YOLOv8n + ROI Polygon</span>
+            <span>Frame rate <b id="fps-gerbang">-- FPS</b></span>
+            <span>Inferensi <b id="lat-gerbang">-- ms</b></span>
+            <span>Terdeteksi <b id="tracks-gerbang">0 Orang</b></span>
+          </div>
+        </article>
+
+        <div class="tips">
+          <p><b>Tips Tampilan HP/Tablet:</b> Tekan tombol <b>Layar Penuh</b> di kanan bawah video untuk memperbesar CCTV
+            atau memutar ke mode miring (<i>Landscape</i>).</p>
+          <a href="#" id="link-landscape">Mode Landscape HP</a>
         </div>
+      </section>
 
-        <div class="video-wrapper" id="wrapper-gerbang">
-          <!-- Status Tag Pojok Atas Video -->
-          <div class="video-overlay-status">
-            <span class="overlay-pill">
-              <span class="pulse-dot"></span> LIVE
-            </span>
-            <span class="overlay-pill">SAFE ZONE ROI</span>
-          </div>
-
-          <!-- Aliran Video MJPEG -->
-          <img class="video-stream" id="stream-gerbang" alt="Aliran video Kamera Gerbang" crossorigin="anonymous">
-
-          <!-- Kontrol Video -->
-          <div class="video-controls">
-            <button class="ctrl-btn" onclick="downloadSnapshot('cam_gerbang')" title="Ambil Snapshot">📸</button>
-            <button class="ctrl-btn" onclick="initCameraStreams()" title="Muat Ulang Stream">🔄</button>
-            <button class="ctrl-btn" onclick="toggleFullscreen('wrapper-gerbang')" title="Layar Penuh">⛶</button>
-          </div>
-        </div>
-
-        <!-- Telemetri Bawah Video -->
-        <div class="telemetry-bar">
-          <div class="telemetry-item">
-            <span>Frame Rate:</span>
-            <span class="telemetry-val" id="fps-gerbang">-- FPS</span>
-          </div>
-          <div class="telemetry-item">
-            <span>Inferensi:</span>
-            <span class="telemetry-val" id="lat-gerbang">-- ms</span>
-          </div>
-          <div class="telemetry-item">
-            <span>Terdeteksi:</span>
-            <span class="telemetry-val" id="tracks-gerbang">0 Orang</span>
+      <!-- Kartu statistik -->
+      <section class="stat-grid">
+        <div class="card stat">
+          <div class="stat-icon"><svg class="ic">
+              <use href="#i-cap" />
+            </svg></div>
+          <div class="stat-text">
+            <small>Kelas Pantauan</small>
+            <b>TK-A</b>
+            <span class="stat-ok">Aktif</span>
           </div>
         </div>
-      </article>
+        <div class="card stat">
+          <div class="stat-icon amber"><svg class="ic">
+              <use href="#i-camera" />
+            </svg></div>
+          <div class="stat-text">
+            <small>Fokus Papan Tulis</small>
+            <b>25 Menit</b>
+            <span>Monitoring Anak · Standby</span>
+          </div>
+        </div>
+        <div class="card stat">
+          <div class="stat-icon indigo"><svg class="ic">
+              <use href="#i-users" />
+            </svg></div>
+          <div class="stat-text">
+            <small>Bermain Edukatif</small>
+            <b>14 Anak</b>
+            <span>Bermain-Edukatif Standby</span>
+          </div>
+        </div>
+        <div class="card stat">
+          <div class="stat-icon green"><svg class="ic">
+              <use href="#i-smile" />
+            </svg></div>
+          <div class="stat-text">
+            <small>Anak Terdeteksi</small>
+            <b id="stat-detected">0 Anak</b>
+            <span>YOLOv8 + ByteTrack</span>
+          </div>
+        </div>
+      </section>
 
-    </section>
-
-    <!-- Real-Time Alert Feed & Management Panel -->
-    <section class="alert-panel">
-      <div class="panel-header">
-        <div class="panel-title">
-          <h2>Pusat Peringatan & Notifikasi (Live Alerts)</h2>
-          <span class="badge-count" id="badge-unresolved-count">0</span>
+      <!-- Pusat peringatan (terhubung ke backend via app.js) -->
+      <section class="card alert-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <h2>Pusat Peringatan &amp; Notifikasi</h2>
+            <span class="badge-count" id="badge-unresolved-count">0</span>
+          </div>
+          <div class="filter-group">
+            <button class="filter-btn active" data-filter="all">Semua</button>
+            <button class="filter-btn" data-filter="fall">Jatuh</button>
+            <button class="filter-btn" data-filter="safezone">Zona Aman</button>
+            <button class="filter-btn" data-filter="unresolved">Belum Diverifikasi</button>
+          </div>
         </div>
 
-        <div class="filter-group">
-          <button class="filter-btn active" data-filter="all">Semua Alert</button>
-          <button class="filter-btn" data-filter="fall">Fall Detection</button>
-          <button class="filter-btn" data-filter="safezone">Safe Zone</button>
-          <button class="filter-btn" data-filter="unresolved">Belum Diverifikasi</button>
+        <div class="alert-summary">
+          <div><small>Total</small><b id="metric-total-alerts">0</b></div>
+          <div><small>Belum diverifikasi</small><b id="metric-unresolved" class="red">0</b></div>
+          <div><small>Anak jatuh</small><b id="metric-falls">0</b></div>
+          <div><small>Pelanggaran zona</small><b id="metric-zones">0</b></div>
         </div>
-      </div>
 
-      <!-- Daftar Alert -->
-      <div class="alert-list" id="alert-feed">
-        <!-- Rendered by app.js -->
-        <div class="alert-empty">
-          <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">🛡️</div>
-          <p>Memuat riwayat alert dari modul Safety AI...</p>
+        <div class="alert-list" id="alert-feed">
+          <div class="alert-empty">
+            <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">🛡️</div>
+            <p>Memuat riwayat alert dari modul Safety AI...</p>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
 
+    <!-- ---------- Kolom kanan ---------- -->
+    <aside class="col-side">
+
+      <section class="card date-card">
+        <div class="date-icon"><svg class="ic">
+            <use href="#i-calendar" />
+          </svg></div>
+        <div>
+          <b id="today-date">--</b>
+          <small id="digital-clock">--:--:-- WIB</small>
+        </div>
+      </section>
+
+      <section class="card chat-card">
+        <div class="chat-head">
+          <div class="chat-id">
+            <div class="chat-avatar"><svg class="ic">
+                <use href="#i-bot" />
+              </svg></div>
+            <div>
+              <b>Kak Bina</b>
+              <small>MODE LOKAL (FAST-RAG OFFLINE)</small>
+            </div>
+          </div>
+          <div class="chat-tools">
+            <button class="chip-soft" type="button" data-action="history"><svg class="ic">
+                <use href="#i-history" />
+              </svg> Riwayat</button>
+            <button class="icon-plain" type="button" aria-label="Menu lainnya"><svg class="ic">
+                <use href="#i-more" />
+              </svg></button>
+          </div>
+        </div>
+
+        <div class="chat-body" id="chat-body">
+          <div class="msg bot">
+            <div class="bubble">Halo! Saya Kak Bina (BinaBot AI). Silakan tanyakan informasi seputar jadwal pelajaran,
+              biaya PPDB/SPP, data guru, atau pengumuman TK Bina Fitrah.</div>
+            <small>Sekarang</small>
+          </div>
+        </div>
+
+        <div class="chat-suggest">
+          <button type="button" class="suggest">Jadwal hari ini?</button>
+          <button type="button" class="suggest">Siapa kepala sekolah TK Bina Fitrah?</button>
+        </div>
+
+        <div class="chat-input">
+          <input type="text" id="chat-text" placeholder="Ketik pertanyaan Anda..." autocomplete="off">
+          <button type="button" id="chat-send" aria-label="Kirim"><svg class="ic">
+              <use href="#i-arrow" />
+            </svg></button>
+        </div>
+      </section>
+    </aside>
   </main>
 
-  <!-- Modal Verifikasi Alert -->
+  <!-- ===================== MODAL VERIFIKASI ===================== -->
   <div class="modal-backdrop" id="modal-verify">
     <div class="modal-box">
       <div class="modal-header">
@@ -231,8 +384,6 @@
       </div>
       <div class="modal-body">
         <p id="modal-alert-desc" style="font-size: 0.85rem; color: var(--text-secondary);"></p>
-
-        <!-- Preview Snapshot Kejadian -->
         <img id="modal-snapshot-img" class="modal-img-preview" alt="Snapshot Kejadian" src="">
 
         <div class="form-group">
@@ -242,24 +393,20 @@
 
         <div class="form-group">
           <label for="verify-note">Catatan Tindakan / Keterangan:</label>
-          <textarea id="verify-note" class="form-control" rows="2" placeholder="Contoh: Anak terpeleset saat bermain balok, sudah ditolong dan aman."></textarea>
+          <textarea id="verify-note" class="form-control" rows="2"
+            placeholder="Contoh: Anak terpeleset saat bermain balok, sudah ditolong dan aman."></textarea>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn-sm btn-warning" onclick="submitAlertVerification('False Alarm')">
-          ❌ Alarm Palsu
-        </button>
-        <button class="btn-sm btn-primary" onclick="submitAlertVerification('Acknowledged')">
-          👁️ Verifikasi Valid
-        </button>
-        <button class="btn-sm btn-success" onclick="submitAlertVerification('Resolved')">
-          ✅ Selesai / Aman
-        </button>
+        <button class="btn-sm btn-warning" onclick="submitAlertVerification('False Alarm')">❌ Alarm Palsu</button>
+        <button class="btn-sm btn-primary" onclick="submitAlertVerification('Acknowledged')">👁️ Verifikasi
+          Valid</button>
+        <button class="btn-sm btn-success" onclick="submitAlertVerification('Resolved')">✅ Selesai / Aman</button>
       </div>
     </div>
   </div>
 
-  <!-- Modal Pengaturan API -->
+  <!-- ===================== MODAL PENGATURAN API ===================== -->
   <div class="modal-backdrop" id="modal-settings">
     <div class="modal-box" style="max-width: 440px;">
       <div class="modal-header">
@@ -271,23 +418,22 @@
           <label for="setting-api-url">Safety AI API Base URL:</label>
           <input type="text" id="setting-api-url" class="form-control" placeholder="http://localhost:8000">
           <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.25rem;">
-            Gunakan <code>http://localhost:8000</code> jika web dijalankan secara terpisah (misal di port 3000 atau server lain).
+            Gunakan <code>http://localhost:8000</code> jika web dijalankan secara terpisah (misal di port 3000 atau
+            server lain).
           </span>
         </div>
       </div>
       <div class="modal-footer">
         <button class="btn-sm" onclick="closeSettingsModal()">Batal</button>
-        <button class="btn-sm btn-primary" onclick="saveApiSettings()">Simpan & Hubungkan</button>
+        <button class="btn-sm btn-primary" onclick="saveApiSettings()">Simpan &amp; Hubungkan</button>
       </div>
     </div>
   </div>
 
-  <!-- Footer -->
-  <footer>
-    <span>Sistem Informasi Akademik Terintegrasi CCTV & AI &bull; TK Bina Fitrah</span>
-    <span>Modul Safety AI v1.0 &bull; YOLOv8-Pose &amp; Safe Zone Geometri</span>
-  </footer>
+  <div class="toast" id="toast"></div>
 
   <script src="js/app.js"></script>
+  <script src="js/ui.js"></script>
 </body>
+
 </html>

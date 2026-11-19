@@ -1,0 +1,46 @@
+source,event_type,t_start,t_end,scenario
+gerbang01.mp4,negative,0.0,10.0,aktivitas aman anak bermain di dalam ROI
+gerbang01.mp4,zone_breach,15.0,,pelanggaran batas gerbang berjalan sendirian
+gerbang01.mp4,negative,21.0,54.0,anak mendekati garis batas tanpa melewati
+gerbang01.mp4,zone_breach,61.0,,pelanggaran batas cepat berlari ke arah gerbang
+gerbang01.mp4,negative,67.0,85.0,anak kembali ke area aman di dalam ROI
+gerbang02.mp4,negative,0.0,35.0,guru dan orang tua dewasa lewat gerbang
+gerbang02.mp4,negative,40.0,75.0,anak berjalan keluar didampingi orang tua (escorted)
+gerbang02.mp4,zone_breach,82.0,,pelanggaran batas anak berlari sendiri setelah terlepas
+gerbang02.mp4,negative,88.0,120.0,orang tua menunggu di luar garis gerbang
+gerbang03.mp4,negative,0.0,10.0,anak berjalan mendekati garis batas tanpa melewati
+gerbang03.mp4,zone_breach,16.0,,pelanggaran batas saat bergerak lambat
+gerbang03.mp4,negative,22.0,48.0,anak bermain bola di dalam zona aman
+gerbang03.mp4,zone_breach,55.0,,pelanggaran batas mengejar bola keluar garis
+gerbang03.mp4,negative,62.0,90.0,guru masuk dan keluar gerbang tanpa pelanggaran
+gerbang04.mp4,zone_breach,9.5,,pelanggaran batas melewati ambang pintu gerbang
+gerbang04.mp4,negative,15.0,38.0,guru berdiri di ambang gerbang mengawasi anak
+gerbang04.mp4,zone_breach,44.0,,pelanggaran batas kedua kalinya saat guru lengah
+gerbang04.mp4,negative,50.0,80.0,anak bermain di halaman dalam jauh dari gerbang
+gerbang05.mp4,negative,0.0,18.0,anak berada di area aman jauh dari gerbang
+gerbang05.mp4,zone_breach,25.0,,pelanggaran batas dan diam di luar garis
+gerbang05.mp4,negative,31.0,46.0,petugas kebersihan sekolah menyapu area gerbang
+gerbang05.mp4,zone_breach,52.0,,pelanggaran batas kembali lagi melewati garis
+gerbang05.mp4,negative,58.0,85.0,anak bermain aman di dalam halaman
+gerbang06.mp4,negative,0.0,28.0,distraksi motor dan pejalan kaki melintas di luar gerbang
+gerbang06.mp4,zone_breach,35.0,,pelanggaran batas anak menengok keluar gerbang
+gerbang06.mp4,negative,42.0,72.0,bayangan kendaraan lewat dan kamera kosong tanpa pelanggaran
+gerbang06.mp4,zone_breach,79.0,,pelanggaran batas cepat saat gerbang terbuka
+gerbang07.mp4,negative,0.0,22.0,silau matahari pagi dan bayangan pohon di garis ROI
+gerbang07.mp4,zone_breach,29.0,,pelanggaran batas di area kontras bayangan
+gerbang07.mp4,negative,36.0,62.0,anak berdiri tepat sebelum garis batas (uji histeresis)
+gerbang07.mp4,zone_breach,68.5,,pelanggaran batas saat kondisi cahaya mendung
+gerbang08.mp4,negative,0.0,20.0,kelompok anak berbaris di dalam zona aman
+gerbang08.mp4,zone_breach,26.5,,pelanggaran batas anak bertubuh kecil di ujung gerbang
+gerbang08.mp4,negative,33.0,58.0,orang tua menjemput anak di area serah-terima
+gerbang08.mp4,zone_breach,65.0,,pelanggaran batas anak terlepas dari rombongan
+gerbang09.mp4,negative,0.0,30.0,banyak orang tua dan anak keluar bersamaan (escorted)
+gerbang09.mp4,zone_breach,37.0,,pelanggaran batas anak berlari keluar sendirian
+gerbang09.mp4,negative,44.0,75.0,anak mendekati garis lalu mundur kembali ke dalam
+gerbang09.mp4,zone_breach,82.0,,pelanggaran batas di tepi kanan poligon
+gerbang10.mp4,negative,0.0,20.0,halaman gerbang sepi tanpa aktivitas
+gerbang10.mp4,zone_breach,26.0,,pelanggaran batas berjalan pelan melewati garis
+gerbang10.mp4,negative,32.0,56.0,guru menutup sebagian gerbang dan berjalan lewat
+gerbang10.mp4,zone_breach,62.0,,pelanggaran batas berlari menuju trotoar depan
+gerbang10.mp4,negative,68.0,88.0,situasi kembali aman di dalam ROI
+gerbang10.mp4,zone_breach,94.0,,pelanggaran batas menyelinap di celah gerbang

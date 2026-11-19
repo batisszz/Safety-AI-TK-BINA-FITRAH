@@ -4,3 +4,22 @@ gerbang01.mp4,zone_breach,61.0,,pelanggaran batas cepat
 gerbang01.mp4,negative,0,12,aktivitas aman dalam ROI
 gerbang01.mp4,negative,20,55,mendekati garis tanpa melewati
 gerbang02.mp4,negative,0,120,dewasa lewat gerbang
+gate01.mp4,zone_breach,14.0,,breach area
+gate02.mp4,zone_breach,12.3,,breach area saat bergerak lambat
+gate02.mp4,negative,0,10,anak berjalan mendekati area tanpa masuk
+gate02.mp4,negative,20,40,orang dewasa sedang menunggu di luar area
+gate02.mp4,negative,50,80,anak bermain di area yang aman
+gate02.mp4,negative,90,120,orang dewasa masuk dan keluar tanpa pelanggaran
+doorway01.mp4,zone_breach,8.5,,breach area
+doorway01.mp4,zone_breach,35.0,,breach area kedua kalinya
+doorway01.mp4,negative,0,30,orang dewasa berdiri di ambang pintu tanpa masuk
+doorway01.mp4,negative,40,80,anak bermain di dalam ruangan jauh dari ambang pintu
+area01.mp4,zone_breach,25.0,,terlalu lama di area berbahaya
+area01.mp4,zone_breach,45.0,,kembali lagi ke area berbahaya
+area01.mp4,negative,0,20,anak berada di area aman jauh dari bahaya
+area01.mp4,negative,30,60,orang dewasa membersihkan area kerja
+area01.mp4,negative,70,100,anak bermain di tempat yang aman di luar area
+area02.mp4,zone_breach,15.0,,breach area saat bergerak cepat
+area02.mp4,negative,0,25,pekerja bergerak melewati area dengan aman
+area02.mp4,negative,30,50,pengiriman barang di area yang ditentukan
+area02.mp4,negative,60,100,kamera bersih dan tidak ada orang di area

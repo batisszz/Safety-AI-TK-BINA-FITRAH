@@ -1,0 +1,11 @@
+{
+  "camera_id": "cam_kelas_a",
+  "frames": 175,
+  "effective_fps": 13.3,
+  "infer_ms_avg": 63.2,
+  "alerts": {
+    "emitted": 0,
+    "cooldown_dropped": 0,
+    "rate_dropped": 0
+  }
+}

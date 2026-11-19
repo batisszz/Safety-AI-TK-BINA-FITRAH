@@ -1,0 +1,1 @@
+{"event_id": "82d83a17-43f5-4696-99f0-c8b7a5d27f20", "camera_id": "cam_gerbang", "alert_type": "system_health", "level": 1, "track_id": null, "confidence": 1.0, "timestamp": "2026-11-15T19:56:30+07:00", "snapshot_path": null, "meta": {"state": "camera_offline", "source": "rtsp", "stream_ts": 0.0}}

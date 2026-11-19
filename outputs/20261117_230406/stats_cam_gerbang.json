@@ -1,0 +1,11 @@
+{
+  "camera_id": "cam_gerbang",
+  "frames": 652,
+  "effective_fps": 20.5,
+  "infer_ms_avg": 107.8,
+  "alerts": {
+    "emitted": 2,
+    "cooldown_dropped": 0,
+    "rate_dropped": 0
+  }
+}

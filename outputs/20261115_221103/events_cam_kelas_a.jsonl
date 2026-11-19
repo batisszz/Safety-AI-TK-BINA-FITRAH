@@ -1,0 +1,1 @@
+{"event_id": "165d620b-c902-416d-94dc-e7a081eb4b5b", "camera_id": "cam_kelas_a", "alert_type": "system_health", "level": 1, "track_id": null, "confidence": 1.0, "timestamp": "2026-11-15T22:11:14+07:00", "snapshot_path": null, "meta": {"state": "camera_offline", "source": "rtsp", "stream_ts": 0.0}}

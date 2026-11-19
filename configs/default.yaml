@@ -21,21 +21,21 @@ sinks:
 cameras:
   # ---- Kamera kelas: Fall Detection (YOLOv8n-pose). Kamera di atas, sudut 30-45 derajat ke bawah.
   - id: cam_kelas_a
-    source: {type: rtsp, url: "rtsp://Satriani:batisganteng159@192.168.18.146:554/stream1"}      # nanti: {type: rtsp, url: "rtsp://localhost:8554/kelasA"}
+    source: {type: file, path: "data/raw/falle.mp4"}      # nanti: {type: rtsp, url: "rtsp://localhost:8554/kelasA"}
     modules: [fall]
     #index : 0
     infer:
       model: yolov8n-pose            # setelah ekspor: models/yolov8n-pose_openvino_model (Intel) atau .onnx
       profile: normal               # low_cpu = imgsz 320, 3 FPS (aman untuk Celeron / i3 lama). normal = 480, 6 FPS
       imgsz: 480                   # nilai eksplisit menang atas profil
-      fps: 11
+      fps: 15
       # threads: 2
     fall: {}                         # semua ambang bawaan = TITIK AWAL; setel dari data (docs/EXPERIMENTS.md)
     drift: {enabled: false}
 
   # ---- Kamera gerbang: Safe Zone Detection (YOLOv8n person + crop ROI).
   - id: cam_gerbang
-    source: {type: rtsp, url: "rtsp://Satriani:batisganteng159@192.168.18.146:554/stream2"}    # nanti: {type: rtsp, url: "rtsp://localhost:8554/gerbang"}
+    source: {type: file, path: data/raw/simulasi_outdoor_anak.mp4}    # nanti: {type: rtsp, url: "rtsp://localhost:8554/gerbang"}
     modules: [safezone]
     infer:
       model: yolov8n
