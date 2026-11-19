@@ -26,8 +26,8 @@ cameras:
     #index : 0
     infer:
       model: yolov8n-pose            # setelah ekspor: models/yolov8n-pose_openvino_model (Intel) atau .onnx
-      profile: normal               # low_cpu = imgsz 320, 3 FPS (aman untuk Celeron / i3 lama). normal = 480, 6 FPS
-      imgsz: 480                   # nilai eksplisit menang atas profil
+      profile: low_cpu               # low_cpu = imgsz 320, 3 FPS (aman untuk Celeron / i3 lama). normal = 480, 6 FPS
+      imgsz: 320                   # nilai eksplisit menang atas profil
       fps: 15
       # threads: 2
     fall: {}                         # semua ambang bawaan = TITIK AWAL; setel dari data (docs/EXPERIMENTS.md)
@@ -39,8 +39,8 @@ cameras:
     modules: [safezone]
     infer:
       model: yolov8n
-      profile: gate
-      imgsz: 480                     # gerbang memakai crop ROI, jadi 480 sering cukup; naikkan ke 640 bila anak jauh terlewat
+      profile: low_cpu
+      imgsz: 320                     # gerbang memakai crop ROI, jadi 480 sering cukup; naikkan ke 640 bila anak jauh terlewat
     roi:
       # Gambar dengan: python tools/draw_roi.py --source <video> --camera cam_gerbang --out configs/roi_cam_gerbang.json
       file: configs/roi_cam_gerbang.json
