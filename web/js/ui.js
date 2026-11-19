@@ -6,12 +6,14 @@
     // ---------- Toast ----------
     const toastEl = document.getElementById("toast");
     let toastTimer = null;
-    function showToast(msg) {
-        if (!toastEl) return;
-        toastEl.textContent = msg;
-        toastEl.classList.add("show");
-        clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2600);
+    if (typeof window.showToast !== "function") {
+        window.showToast = function (msg) {
+            if (!toastEl) return;
+            toastEl.textContent = msg;
+            toastEl.classList.add("show");
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2600);
+        };
     }
 
     // ---------- Tanggal hari ini (jam digital diisi app.js) ----------

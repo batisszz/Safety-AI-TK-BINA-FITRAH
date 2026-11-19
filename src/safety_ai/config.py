@@ -21,7 +21,7 @@ PROFILES = {
 
 # --------------------------------------------------------------------------- sumber
 class SourceConfig(BaseModel):
-    type: Literal["file", "webcam", "rtsp"]
+    type: Literal["file", "webcam", "rtsp", "browser"]
     path: Optional[str] = None
     url: Optional[str] = None
     index: int = 0

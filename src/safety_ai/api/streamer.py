@@ -55,6 +55,7 @@ class CameraStreamer:
 
         self._stop_event = threading.Event()
         self._thread: Optional[threading.Thread] = None
+        self._control_lock = threading.Lock()
 
         self._lock = threading.Lock()
         self._latest_jpeg: Optional[bytes] = None
@@ -67,13 +68,26 @@ class CameraStreamer:
         self._last_frame_time = 0.0
         self._is_running = False
 
-        self._init_source_and_backend()
+        self.backend = None
+        self.source = None
+        self._init_backend()
+        self._init_source(self.cam.source)
         self._init_manager()
 
-    def _init_source_and_backend(self) -> None:
-        """Inisialisasi sumber video dan model inferensi dengan toleransi kegagalan."""
-        src_cfg = self.cam.source
+    def _init_backend(self) -> None:
+        """Inisialisasi model inferensi (persisten saat ganti sumber)."""
+        try:
+            self.backend = YoloBackend(self.cam.infer, self.models_dir)
+        except Exception as e:
+            logger.warning(f"Gagal memuat YoloBackend untuk {self.cam.id}: {e}. Menggunakan ScriptedBackend.")
+            if "fall" in self.cam.modules:
+                fn, _ = class_scenario()
+            else:
+                fn, _ = gate_scenario()
+            self.backend = ScriptedBackend(fn)
 
+    def _prepare_source_cfg(self, src_cfg: SourceConfig, allow_webcam_fallback: bool = True) -> SourceConfig:
+        """Normalisasi path dan fallback aman untuk sumber video."""
         if src_cfg.type == "file" and src_cfg.path:
             p = Path(src_cfg.path)
             if not p.exists():
@@ -83,8 +97,8 @@ class CameraStreamer:
                         src_cfg = src_cfg.model_copy(update={"path": str(c)})
                         break
 
-        # Cek ketersediaan webcam secara aman dan cepat
-        if src_cfg.type == "webcam":
+        # Cek ketersediaan webcam server secara aman dan cepat (hanya jika diminta)
+        if src_cfg.type == "webcam" and allow_webcam_fallback:
             opened = False
             try:
                 backend_flag = cv2.CAP_DSHOW if sys.platform.startswith("win") else cv2.CAP_ANY
@@ -105,11 +119,15 @@ class CameraStreamer:
 
         if src_cfg.type == "file" and self.force_file_loop:
             src_cfg = src_cfg.model_copy(update={"loop": True, "realtime": True})
+        return src_cfg
 
+    def _init_source(self, src_cfg: SourceConfig, allow_webcam_fallback: bool = True) -> None:
+        """Inisialisasi sumber video dengan toleransi kegagalan."""
+        self.cam.source = self._prepare_source_cfg(src_cfg, allow_webcam_fallback=allow_webcam_fallback)
         try:
-            self.source = open_source(src_cfg, self.cam.infer.fps)
+            self.source = open_source(self.cam.source, self.cam.infer.fps)
         except Exception as e:
-            logger.error(f"Gagal membuka source {src_cfg}: {e}. Memakai synthetic generator.")
+            logger.error(f"Gagal membuka source {self.cam.source}: {e}. Memakai synthetic generator.")
             if "fall" in self.cam.modules:
                 fn, dur = class_scenario()
             else:
@@ -117,16 +135,44 @@ class CameraStreamer:
             self.source = None
             self._synthetic_fn = fn
 
-        # Inisialisasi Backend YOLO
-        try:
-            self.backend = YoloBackend(self.cam.infer, self.models_dir)
-        except Exception as e:
-            logger.warning(f"Gagal memuat YoloBackend untuk {self.cam.id}: {e}. Menggunakan ScriptedBackend.")
-            if "fall" in self.cam.modules:
-                fn, _ = class_scenario()
-            else:
-                fn, _ = gate_scenario()
-            self.backend = ScriptedBackend(fn)
+    def get_source_info(self) -> dict[str, Any]:
+        """Ringkasan konfigurasi sumber aktif untuk API/UI."""
+        src = self.cam.source
+        info: dict[str, Any] = {"type": src.type}
+        if src.type == "file":
+            info["path"] = src.path
+            info["filename"] = Path(src.path).name if src.path else None
+        elif src.type == "webcam":
+            info["index"] = src.index
+        elif src.type == "rtsp":
+            info["url"] = src.url
+            info["rtsp_transport"] = src.rtsp_transport
+        elif src.type == "browser":
+            info["connected"] = bool(getattr(self.source, "connected", False))
+        return info
+
+    def reconfigure_source(self, src_cfg: SourceConfig) -> dict[str, Any]:
+        """Ganti sumber kamera saat runtime (stop -> swap -> start)."""
+        with self._control_lock:
+            was_running = self._is_running
+            self.stop()
+            # Tutup sink lama agar file handle tidak bocor, lalu siapkan manager baru
+            try:
+                if hasattr(self, "manager") and self.manager:
+                    self.manager.sink.close()
+            except Exception:
+                pass
+            self._init_source(src_cfg, allow_webcam_fallback=False)
+            self._init_manager()
+            # Reset buffer agar klien tidak melihat frame sumber lama
+            with self._lock:
+                self._latest_jpeg = None
+                self._latest_raw = None
+                self._latest_tracks = []
+                self._last_frame_time = 0.0
+            if was_running:
+                self.start()
+            return self.get_source_info()
 
     def _init_manager(self) -> None:
         """Inisialisasi AlertManager dengan sink gabungan Broadcaster + File."""
@@ -189,13 +235,13 @@ class CameraStreamer:
     def _worker_loop(self) -> None:
         fps_target = max(1.0, float(self.cam.infer.fps))
         frame_interval = 1.0 / fps_target
-        is_realtime_src = getattr(getattr(self, "source", None), "realtime", False)
 
         t_prev = time.perf_counter()
         fps_smooth = fps_target
 
         while not self._stop_event.is_set():
             t_loop_start = time.perf_counter()
+            is_realtime_src = getattr(getattr(self, "source", None), "realtime", False)
 
             frame = None
             if self.source:
@@ -216,11 +262,18 @@ class CameraStreamer:
                     time.sleep(0.05)
                     continue
 
-            # Jika frame masih None (misal synthetic fallback)
+            # Jika frame masih None (misal menunggu browser push / synthetic fallback)
             if frame is None:
-                img = np.full((480, 640, 3), 50, dtype=np.uint8)
-                cur_ts = time.time()
-                frame = Frame(image=img, ts=cur_ts, idx=self._frame_count, wall=cur_ts)
+                if self.cam.source.type == "browser":
+                    time.sleep(0.05)
+                    continue
+                if self.source is None:
+                    img = np.full((480, 640, 3), 50, dtype=np.uint8)
+                    cur_ts = time.time()
+                    frame = Frame(image=img, ts=cur_ts, idx=self._frame_count, wall=cur_ts)
+                else:
+                    time.sleep(0.02)
+                    continue
 
             # Proses inferensi dan modul deteksi
             h, w = frame.image.shape[:2]
@@ -282,7 +335,7 @@ class CameraStreamer:
                 annotated = frame.image.copy()
 
             # Encode ke JPEG
-            success, jpeg_buf = cv2.imencode(".jpg", annotated, [int(cv2.IMWRITE_JPEG_QUALITY), 75])
+            success, jpeg_buf = cv2.imencode(".jpg", annotated, [int(cv2.IMWRITE_JPEG_QUALITY), 60])
             if success:
                 jpeg_bytes = jpeg_buf.tobytes()
                 with self._lock:
@@ -371,6 +424,61 @@ class CameraManager:
 
     def get_all_stats(self) -> list[dict[str, Any]]:
         return [s.get_stats() for s in self.streamers.values()]
+
+    def get_source_info(self, camera_id: str) -> Optional[dict[str, Any]]:
+        streamer = self.get_streamer(camera_id)
+        if not streamer:
+            return None
+        return streamer.get_source_info()
+
+    def set_source(self, camera_id: str, source_cfg: SourceConfig) -> Optional[dict[str, Any]]:
+        streamer = self.get_streamer(camera_id)
+        if not streamer:
+            return None
+        return streamer.reconfigure_source(source_cfg)
+
+    def push_browser_frame(self, camera_id: str, image: np.ndarray) -> bool:
+        streamer = self.get_streamer(camera_id)
+        if not streamer or not streamer.source or streamer.cam.source.type != "browser":
+            return False
+        try:
+            streamer.source.push(image)
+            return True
+        except Exception:
+            return False
+
+    def get_roi(self, camera_id: str) -> Optional[dict[str, Any]]:
+        streamer = self.get_streamer(camera_id)
+        if not streamer or not streamer.safezone_module:
+            return None
+        p = streamer.safezone_module.p
+        return {
+            "camera_id": camera_id,
+            "safe_polygon": p.safe_polygon,
+            "file": p.file,
+            "margin_frac": p.margin_frac,
+            "warn_frac": p.warn_frac,
+        }
+
+    def set_roi(self, camera_id: str, polygon: list) -> Optional[dict[str, Any]]:
+        streamer = self.get_streamer(camera_id)
+        if not streamer or not streamer.safezone_module:
+            return None
+        # Update modul yang sedang berjalan
+        streamer.safezone_module.p = streamer.safezone_module.p.model_copy(update={"safe_polygon": polygon})
+        streamer.safezone_module._poly_cache = {}
+        # Simpan ke berkas ROI jika tersedia
+        roi_file = streamer.safezone_module.p.file
+        if roi_file:
+            try:
+                roi_path = Path(roi_file)
+                if not roi_path.is_absolute():
+                    roi_path = Path.cwd() / roi_path
+                roi_path.parent.mkdir(parents=True, exist_ok=True)
+                roi_path.write_text(json.dumps({"camera_id": camera_id, "safe_polygon": polygon}, indent=2), encoding="utf-8")
+            except Exception as e:
+                logger.warning(f"Gagal menyimpan ROI {camera_id} ke {roi_file}: {e}")
+        return self.get_roi(camera_id)
 
     def acknowledge_fall(self, track_id: int, now: float) -> None:
         """Meneruskan acknowledge ke semua FallModule."""

@@ -1329,6 +1329,85 @@ textarea:focus-visible {
   transform: translate(-50%, 0);
 }
 
+/* --- Kontrol sumber & ROI (tambahan) --- */
+.video-bottom-right {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: 70%;
+}
+
+.form-row {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.form-row .form-group {
+  min-width: 0;
+}
+
+select.form-control {
+  cursor: pointer;
+}
+
+.source-preview-wrap {
+  margin-top: 0.4rem;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #120c24;
+  max-height: 180px;
+}
+
+#source-browser-preview {
+  width: 100%;
+  height: 180px;
+  object-fit: contain;
+  display: block;
+  background: #120c24;
+}
+
+.roi-editor-wrap {
+  width: 100%;
+}
+
+.roi-canvas-container {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  max-width: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  background: #120c24;
+  line-height: 0;
+}
+
+#roi-base-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 420px;
+  object-fit: contain;
+  background: #120c24;
+}
+
+#roi-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+}
+
+.roi-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.2rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
 
   *,

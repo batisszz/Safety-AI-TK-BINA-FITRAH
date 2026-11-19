@@ -177,9 +177,66 @@ def _webcam_opener(index: int) -> Callable:
     return open_
 
 
+class BrowserSource:
+    """Sumber frame yang didorong dari klien browser (mis. kamera HP via getUserMedia)."""
+
+    is_live = True
+    realtime = True
+
+    def __init__(self, sample_fps: float, name: str = "browser", stall_s: float = 10.0):
+        self.name = name
+        self.interval = 1.0 / max(sample_fps, 0.1)
+        self.stall_s = stall_s
+        self.finished = False
+        self.connected = False
+        self._lock = threading.Lock()
+        self._latest = None
+        self._latest_seq = 0
+        self._served_seq = 0
+        self._last_served = 0.0
+        self._last_frame_mono = 0.0
+        self._t0 = time.monotonic()
+        self._idx = 0
+
+    def push(self, image) -> None:
+        with self._lock:
+            self._latest = image
+            self._latest_seq += 1
+            self._last_frame_mono = time.monotonic()
+            self.connected = True
+
+    def read(self, timeout: float = 1.0) -> Optional[Frame]:
+        end = time.monotonic() + timeout
+        while time.monotonic() < end and not self.finished:
+            with self._lock:
+                fresh = self._latest is not None and self._latest_seq != self._served_seq
+                due = time.monotonic() - self._last_served >= self.interval
+                if fresh and due:
+                    img = self._latest.copy()
+                    self._served_seq = self._latest_seq
+                    self._last_served = time.monotonic()
+                    idx = self._idx
+                    self._idx += 1
+                    now = time.time()
+                    return Frame(image=img, ts=time.monotonic() - self._t0, idx=idx, wall=now)
+            time.sleep(0.005)
+        return None
+
+    def seconds_since_frame(self) -> float:
+        if self._last_frame_mono <= 0:
+            return 0.0
+        return time.monotonic() - self._last_frame_mono
+
+    def close(self) -> None:
+        self.finished = True
+        self.connected = False
+
+
 def open_source(cfg: SourceConfig, sample_fps: float):
     if cfg.type == "file":
         return FileSource(cfg.path, sample_fps, loop=cfg.loop, realtime=cfg.realtime, start_time=cfg.start_time)
     if cfg.type == "webcam":
         return LiveSource(_webcam_opener(cfg.index), sample_fps, name=f"webcam{cfg.index}")
+    if cfg.type == "browser":
+        return BrowserSource(sample_fps, name="browser", stall_s=cfg.stall_s)
     return LiveSource(_rtsp_opener(cfg.url, cfg.rtsp_transport), sample_fps, name="rtsp")

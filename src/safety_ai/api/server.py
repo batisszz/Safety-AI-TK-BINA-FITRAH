@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import json
 import os
 import sys
 import time
@@ -17,14 +18,16 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+import cv2
+import numpy as np
 import psutil
-from fastapi import FastAPI, HTTPException, Query, Request, Response
+from fastapi import FastAPI, File, HTTPException, Query, Request, Response, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from ..config import AppConfig, load_config
+from ..config import AppConfig, SourceConfig, load_config
 from .alerts import AlertStore, EventBroadcaster
 from .streamer import CameraManager
 
@@ -49,6 +52,18 @@ class TriggerAlertRequest(BaseModel):
     track_id: int = 1
     confidence: float = 0.88
     message: str = "Simulasi pengujian alert dari web dashboard"
+
+
+class SetSourceRequest(BaseModel):
+    type: str = Field(..., description="file | webcam | rtsp | browser")
+    path: Optional[str] = None
+    url: Optional[str] = None
+    index: int = 0
+    rtsp_transport: str = "tcp"
+
+
+class RoiRequest(BaseModel):
+    safe_polygon: list = Field(..., description="Daftar titik [x,y] ternormalisasi 0..1")
 
 
 def get_app(config_path: str = "configs/default.yaml", run_name: Optional[str] = None) -> FastAPI:
@@ -115,6 +130,110 @@ def get_app(config_path: str = "configs/default.yaml", run_name: Optional[str] =
         if not camera_manager:
             return []
         return camera_manager.get_all_stats()
+
+    @api_app.get("/api/cameras/{camera_id}/source", summary="Konfigurasi sumber kamera aktif")
+    async def get_camera_source(camera_id: str):
+        if not camera_manager:
+            raise HTTPException(status_code=503, detail="Camera manager belum siap")
+        info = camera_manager.get_source_info(camera_id)
+        if info is None:
+            raise HTTPException(status_code=404, detail=f"Kamera '{camera_id}' tidak ditemukan")
+        return {"camera_id": camera_id, "source": info}
+
+    @api_app.post("/api/cameras/{camera_id}/source", summary="Ganti sumber kamera (file/webcam/rtsp/browser)")
+    async def set_camera_source(camera_id: str, req: SetSourceRequest):
+        if not camera_manager:
+            raise HTTPException(status_code=503, detail="Camera manager belum siap")
+        streamer = camera_manager.get_streamer(camera_id)
+        if not streamer:
+            raise HTTPException(status_code=404, detail=f"Kamera '{camera_id}' tidak ditemukan")
+
+        stype = (req.type or "").strip().lower()
+        if stype == "file":
+            if not req.path:
+                raise HTTPException(status_code=400, detail="path diperlukan untuk source.type=file")
+            src = SourceConfig(type="file", path=req.path, loop=True, realtime=True)
+        elif stype == "webcam":
+            src = SourceConfig(type="webcam", index=int(req.index))
+        elif stype == "rtsp":
+            if not req.url:
+                raise HTTPException(status_code=400, detail="url diperlukan untuk source.type=rtsp")
+            transport = req.rtsp_transport if req.rtsp_transport in ("tcp", "udp") else "tcp"
+            src = SourceConfig(type="rtsp", url=req.url, rtsp_transport=transport)
+        elif stype == "browser":
+            src = SourceConfig(type="browser")
+        else:
+            raise HTTPException(status_code=400, detail=f"Tipe sumber tidak dikenal: {req.type}")
+
+        info = camera_manager.set_source(camera_id, src)
+        return {"status": "ok", "camera_id": camera_id, "source": info}
+
+    @api_app.post("/api/cameras/{camera_id}/source/frame", summary="Kirim frame JPEG dari browser (kamera perangkat)")
+    async def push_browser_frame(camera_id: str, request: Request):
+        if not camera_manager:
+            raise HTTPException(status_code=503, detail="Camera manager belum siap")
+        data = await request.body()
+        if not data:
+            raise HTTPException(status_code=400, detail="Body kosong")
+        arr = np.frombuffer(data, dtype=np.uint8)
+        img = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+        if img is None:
+            raise HTTPException(status_code=400, detail="Gagal decode gambar JPEG")
+        ok = camera_manager.push_browser_frame(camera_id, img)
+        if not ok:
+            raise HTTPException(status_code=409, detail="Kamera tidak dalam mode sumber browser")
+        return {"status": "ok"}
+
+    @api_app.get("/api/sources/videos", summary="Daftar file video yang tersedia untuk sumber file")
+    async def list_source_videos():
+        roots = [Path("data/raw"), Path("data")]
+        exts = {".mp4", ".avi", ".mov", ".mkv", ".m4v"}
+        seen = set()
+        items = []
+        for root in roots:
+            if not root.exists():
+                continue
+            for p in sorted(root.glob("**/*")):
+                if not p.is_file() or p.suffix.lower() not in exts:
+                    continue
+                try:
+                    rel = p.as_posix()
+                except Exception:
+                    rel = str(p)
+                if rel in seen:
+                    continue
+                seen.add(rel)
+                items.append({"path": rel, "name": p.name})
+        return {"items": items}
+
+    @api_app.get("/api/cameras/{camera_id}/roi", summary="Ambil konfigurasi ROI kamera")
+    async def get_camera_roi(camera_id: str):
+        if not camera_manager:
+            raise HTTPException(status_code=503, detail="Camera manager belum siap")
+        roi = camera_manager.get_roi(camera_id)
+        if roi is None:
+            raise HTTPException(status_code=404, detail=f"Kamera '{camera_id}' tidak memiliki ROI/safezone")
+        return roi
+
+    @api_app.post("/api/cameras/{camera_id}/roi", summary="Simpan dan terapkan ROI poligon kamera")
+    async def set_camera_roi(camera_id: str, req: RoiRequest):
+        if not camera_manager:
+            raise HTTPException(status_code=503, detail="Camera manager belum siap")
+        poly = req.safe_polygon
+        if not isinstance(poly, list) or len(poly) < 3:
+            raise HTTPException(status_code=400, detail="safe_polygon minimal 3 titik")
+        norm = []
+        for p in poly:
+            if not isinstance(p, (list, tuple)) or len(p) != 2:
+                raise HTTPException(status_code=400, detail="Setiap titik harus [x, y]")
+            x, y = float(p[0]), float(p[1])
+            if not (0.0 <= x <= 1.0 and 0.0 <= y <= 1.0):
+                raise HTTPException(status_code=400, detail="Koordinat harus ternormalisasi 0..1")
+            norm.append([round(x, 4), round(y, 4)])
+        roi = camera_manager.set_roi(camera_id, norm)
+        if roi is None:
+            raise HTTPException(status_code=404, detail=f"Kamera '{camera_id}' tidak memiliki ROI/safezone")
+        return {"status": "ok", "roi": roi}
 
     @api_app.get("/api/cameras/{camera_id}/stream", summary="Stream MJPEG video dengan anotasi deteksi")
     async def stream_camera(camera_id: str):

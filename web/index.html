@@ -164,6 +164,7 @@
             <div class="video-top-left">
               <span class="pill-dark"><span class="rec-dot"></span> LIVE · 720P</span>
               <button class="pill-light" type="button" data-action="playback">Buka Playback</button>
+              <button class="pill-light" type="button" onclick="openSourceModal('cam_kelas_a')"><svg class="ic"><use href="#i-refresh" /></svg> Sumber</button>
             </div>
             <span class="cam-status-pill status-safe-pill" id="badge-status-kelas">AMAN / NORMAL</span>
 
@@ -204,6 +205,7 @@
             <div class="video-top-left">
               <span class="pill-dark"><span class="rec-dot"></span> LIVE · 720P</span>
               <button class="pill-light" type="button" data-action="playback">Buka Playback</button>
+              <button class="pill-light" type="button" onclick="openSourceModal('cam_gerbang')"><svg class="ic"><use href="#i-refresh" /></svg> Sumber</button>
             </div>
             <span class="cam-status-pill status-safe-pill" id="badge-status-gerbang">AMAN / NORMAL</span>
 
@@ -219,6 +221,7 @@
             </div>
 
             <div class="video-bottom-right">
+              <button class="pill-light" type="button" onclick="openRoiModal('cam_gerbang')"><svg class="ic"><use href="#i-expand" /></svg> ROI Zona</button>
               <button class="pill-light" type="button" onclick="toggleFullscreen('wrapper-gerbang')"><svg class="ic">
                   <use href="#i-expand" />
                 </svg> Layar Penuh</button>
@@ -426,6 +429,120 @@
       <div class="modal-footer">
         <button class="btn-sm" onclick="closeSettingsModal()">Batal</button>
         <button class="btn-sm btn-primary" onclick="saveApiSettings()">Simpan &amp; Hubungkan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL SUMBER KAMERA ===================== -->
+  <div class="modal-backdrop" id="modal-source">
+    <div class="modal-box" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 id="source-modal-title">Ganti Sumber Kamera</h3>
+        <button class="modal-close" onclick="closeSourceModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="source-modal-desc" style="font-size: 0.8rem; color: var(--text-secondary);"></p>
+
+        <div class="form-group">
+          <label for="source-type">Jenis Sumber</label>
+          <select id="source-type" class="form-control" onchange="onSourceTypeChange()">
+            <option value="file">Video file (video.mp4 yang tersedia)</option>
+            <option value="browser">Kamera perangkat (webcam / kamera HP depan-belakang)</option>
+            <option value="rtsp">RTSP (IP kamera + autentikasi)</option>
+          </select>
+        </div>
+
+        <div id="source-panel-file" class="source-panel">
+          <div class="form-group">
+            <label for="source-file-select">Pilih file video</label>
+            <select id="source-file-select" class="form-control"></select>
+            <span style="font-size: 0.72rem; color: var(--text-muted);">File dibaca dari folder <code>data/raw</code> di server.</span>
+          </div>
+        </div>
+
+        <div id="source-panel-browser" class="source-panel" style="display:none;">
+          <div class="form-group">
+            <label for="source-facing">Kamera perangkat (browser)</label>
+            <select id="source-facing" class="form-control">
+              <option value="environment">Belakang (environment) - disarankan di HP</option>
+              <option value="user">Depan (user/selfie)</option>
+            </select>
+            <span style="font-size: 0.72rem; color: var(--text-muted);">Menggunakan kamera browser (getUserMedia) dan mengirim frame ke server untuk diproses AI. Izinkan akses kamera saat diminta.</span>
+          </div>
+          <div class="source-preview-wrap">
+            <video id="source-browser-preview" autoplay playsinline muted></video>
+          </div>
+        </div>
+
+        <div id="source-panel-rtsp" class="source-panel" style="display:none;">
+          <div class="form-group">
+            <label for="rtsp-host">IP / Host</label>
+            <input type="text" id="rtsp-host" class="form-control" placeholder="contoh: 192.168.1.10">
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="flex:1;">
+              <label for="rtsp-port">Port (opsional)</label>
+              <input type="text" id="rtsp-port" class="form-control" placeholder="554">
+            </div>
+            <div class="form-group" style="flex:2;">
+              <label for="rtsp-path">Path / Stream</label>
+              <input type="text" id="rtsp-path" class="form-control" placeholder="stream1 atau live/ch0">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="flex:1;">
+              <label for="rtsp-user">Username (opsional)</label>
+              <input type="text" id="rtsp-user" class="form-control" placeholder="admin">
+            </div>
+            <div class="form-group" style="flex:1;">
+              <label for="rtsp-pass">Password (opsional)</label>
+              <input type="password" id="rtsp-pass" class="form-control" placeholder="••••••">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="rtsp-transport">Transport</label>
+            <select id="rtsp-transport" class="form-control">
+              <option value="tcp">TCP (disarankan)</option>
+              <option value="udp">UDP</option>
+            </select>
+            <span style="font-size: 0.72rem; color: var(--text-muted);">URL akan dibentuk otomatis: <code>rtsp://user:pass@ip:port/path</code></span>
+          </div>
+        </div>
+
+        <div id="source-status-msg" style="font-size: 0.75rem; color: var(--text-muted);"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-sm" onclick="closeSourceModal()">Batal</button>
+        <button class="btn-sm btn-primary" onclick="applyCameraSource()">Terapkan Sumber</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL ROI KAMERA GERBANG ===================== -->
+  <div class="modal-backdrop" id="modal-roi">
+    <div class="modal-box" style="max-width: 760px;">
+      <div class="modal-header">
+        <h3 id="roi-modal-title">Atur ROI Zona Aman - Kamera Gerbang</h3>
+        <button class="modal-close" onclick="closeRoiModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.8rem; color: var(--text-secondary);">Klik pada gambar untuk menambah titik poligon zona aman. Minimal 3 titik. Tarik urutan titik searah tepi area yang diizinkan.</p>
+        <div class="roi-editor-wrap">
+          <div class="roi-canvas-container" id="roi-canvas-container">
+            <img id="roi-base-image" alt="Frame kamera untuk ROI">
+            <canvas id="roi-canvas"></canvas>
+          </div>
+        </div>
+        <div class="roi-toolbar">
+          <button class="btn-sm" type="button" onclick="undoRoiPoint()">↶ Undo titik</button>
+          <button class="btn-sm" type="button" onclick="clearRoiPoints()">Hapus semua</button>
+          <button class="btn-sm" type="button" onclick="reloadRoiFromServer()">Muat ROI saat ini</button>
+          <span id="roi-point-count" style="font-size:0.75rem;color:var(--text-muted);margin-left:auto;">0 titik</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-sm" onclick="closeRoiModal()">Batal</button>
+        <button class="btn-sm btn-primary" onclick="saveRoiPolygon()">Simpan &amp; Terapkan ROI</button>
       </div>
     </div>
   </div>

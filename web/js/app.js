@@ -101,6 +101,13 @@ const sfx = new SoundFX();
 // ==========================================================================
 // Inisialisasi Aliran Video Kamera
 // ==========================================================================
+function refreshCameraStream(cameraId) {
+  const id = cameraId === "cam_kelas_a" ? "stream-kelas" : "stream-gerbang";
+  const img = document.getElementById(id);
+  if (!img) return;
+  img.src = `${API_BASE}/api/cameras/${cameraId}/stream?t=${Date.now()}`;
+}
+
 function initCameraStreams() {
   const streamKelas = document.getElementById("stream-kelas");
   const streamGerbang = document.getElementById("stream-gerbang");
@@ -494,6 +501,398 @@ function saveApiSettings() {
     alert(`API Base URL diperbarui ke: ${API_BASE}`);
   }
 }
+
+// ==========================================================================
+// Kontrol Sumber Kamera (file / browser webcam HP / RTSP)
+// ==========================================================================
+let activeSourceCameraId = null;
+let browserCapture = { cameraId: null, stream: null, interval: null, sending: false };
+
+function stopBrowserCapture(targetCameraId = null) {
+  if (targetCameraId && browserCapture.cameraId && browserCapture.cameraId !== targetCameraId) return;
+  if (browserCapture.interval) {
+    clearInterval(browserCapture.interval);
+    browserCapture.interval = null;
+  }
+  if (browserCapture.stream) {
+    try { browserCapture.stream.getTracks().forEach((t) => t.stop()); } catch (e) {}
+    browserCapture.stream = null;
+  }
+  browserCapture.cameraId = null;
+  browserCapture.sending = false;
+  const preview = document.getElementById("source-browser-preview");
+  if (preview) {
+    try { preview.srcObject = null; } catch (e) { preview.src = ""; }
+  }
+}
+
+function onSourceTypeChange() {
+  const type = (document.getElementById("source-type") || {}).value || "file";
+  document.getElementById("source-panel-file").style.display = type === "file" ? "" : "none";
+  document.getElementById("source-panel-browser").style.display = type === "browser" ? "" : "none";
+  document.getElementById("source-panel-rtsp").style.display = type === "rtsp" ? "" : "none";
+  if (type !== "browser") {
+    // hentikan preview lokal bila ganti tipe, capture aktif background dikelola terpisah
+    const preview = document.getElementById("source-browser-preview");
+    if (preview && preview.srcObject && browserCapture.cameraId !== activeSourceCameraId) {
+      // preview sementara dari modal lain tidak dipakai; biarkan capture global apa adanya
+    }
+  }
+}
+
+async function loadSourceVideos(selectedPath) {
+  const sel = document.getElementById("source-file-select");
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Memuat...</option>';
+  try {
+    const res = await fetch(`${API_BASE}/api/sources/videos`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const items = data.items || [];
+    if (items.length === 0) {
+      sel.innerHTML = '<option value="">Tidak ada file video ditemukan (data/raw)</option>';
+      return;
+    }
+    sel.innerHTML = items.map((it) => `<option value="${it.path}">${it.name} — ${it.path}</option>`).join("");
+    if (selectedPath) sel.value = selectedPath;
+  } catch (e) {
+    sel.innerHTML = '<option value="">Gagal memuat daftar video</option>';
+  }
+}
+
+async function openSourceModal(cameraId) {
+  activeSourceCameraId = cameraId;
+  const camName = cameraId === "cam_kelas_a" ? "Kamera Kelas A" : "Kamera Gerbang";
+  setText("source-modal-title", `Ganti Sumber - ${camName}`);
+  setText("source-modal-desc", `Pilih sumber frame untuk ${camName}. Perubahan diterapkan ke server AI.`);
+  setText("source-status-msg", "");
+
+  // Reset fields
+  const host = document.getElementById("rtsp-host"); if (host) host.value = "";
+  const port = document.getElementById("rtsp-port"); if (port) port.value = "554";
+  const path = document.getElementById("rtsp-path"); if (path) path.value = "stream1";
+  const user = document.getElementById("rtsp-user"); if (user) user.value = "";
+  const pass = document.getElementById("rtsp-pass"); if (pass) pass.value = "";
+  const trans = document.getElementById("rtsp-transport"); if (trans) trans.value = "tcp";
+
+  let curPath = null;
+  let curType = "file";
+  try {
+    const res = await fetch(`${API_BASE}/api/cameras/${cameraId}/source`);
+    if (res.ok) {
+      const data = await res.json();
+      const src = data.source || {};
+      curType = src.type || "file";
+      if (src.type === "file") curPath = src.path || null;
+      if (src.type === "rtsp" && src.url) {
+        try {
+          const u = new URL(src.url);
+          if (host) host.value = u.hostname || "";
+          if (port) port.value = u.port || "554";
+          if (path) path.value = (u.pathname || "/stream1").replace(/^\//, "");
+          if (user) user.value = decodeURIComponent(u.username || "");
+          if (pass) pass.value = decodeURIComponent(u.password || "");
+        } catch (e) {}
+        if (trans) trans.value = src.rtsp_transport || "tcp";
+      }
+    }
+  } catch (e) {}
+
+  const typeSel = document.getElementById("source-type");
+  if (typeSel) typeSel.value = (curType === "webcam" ? "file" : curType); // webcam server lama -> tampilkan sebagai pilihan file/browser manual
+  await loadSourceVideos(curPath);
+  onSourceTypeChange();
+  document.getElementById("modal-source").classList.add("open");
+}
+
+function closeSourceModal() {
+  // jangan hentikan capture browser global di sini; hanya tutup preview modal
+  const preview = document.getElementById("source-browser-preview");
+  if (preview && browserCapture.cameraId !== activeSourceCameraId) {
+    try { preview.srcObject = null; } catch (e) {}
+  }
+  document.getElementById("modal-source").classList.remove("open");
+  activeSourceCameraId = null;
+}
+
+function buildRtspUrl() {
+  const host = (document.getElementById("rtsp-host").value || "").trim();
+  const port = (document.getElementById("rtsp-port").value || "").trim();
+  let rpath = (document.getElementById("rtsp-path").value || "").trim();
+  const user = (document.getElementById("rtsp-user").value || "").trim();
+  const pass = document.getElementById("rtsp-pass").value || "";
+  if (!host) throw new Error("IP/Host RTSP harus diisi");
+  if (rpath.startsWith("/")) rpath = rpath.slice(1);
+  const auth = user ? `${encodeURIComponent(user)}:${encodeURIComponent(pass)}@` : "";
+  const portPart = port ? `:${port}` : "";
+  const pathPart = rpath ? `/${rpath}` : "";
+  return `rtsp://${auth}${host}${portPart}${pathPart}`;
+}
+
+async function startBrowserCapture(cameraId, facingMode) {
+  stopBrowserCapture(); // satu capture aktif
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    throw new Error("Browser tidak mendukung akses kamera (getUserMedia)");
+  }
+  const constraints = { video: { facingMode: { ideal: facingMode } }, audio: false };
+  const stream = await navigator.mediaDevices.getUserMedia(constraints);
+  browserCapture.cameraId = cameraId;
+  browserCapture.stream = stream;
+  browserCapture.sending = false;
+
+  const preview = document.getElementById("source-browser-preview");
+  if (preview) {
+    preview.srcObject = stream;
+    try { await preview.play(); } catch (e) {}
+  }
+
+  const video = document.createElement("video");
+  video.autoplay = true; video.playsInline = true; video.muted = true; video.srcObject = stream;
+  try { await video.play(); } catch (e) {}
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+
+  browserCapture.interval = setInterval(async () => {
+    if (browserCapture.sending) return;
+    const w = video.videoWidth, h = video.videoHeight;
+    if (!w || !h) return;
+    canvas.width = w; canvas.height = h;
+    ctx.drawImage(video, 0, 0, w, h);
+    browserCapture.sending = true;
+    try {
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.6));
+      if (blob) {
+        await fetch(`${API_BASE}/api/cameras/${cameraId}/source/frame`, {
+          method: "POST",
+          headers: { "Content-Type": "image/jpeg" },
+          body: blob,
+        });
+      }
+    } catch (e) {
+      // abaikan error kirim sesaat
+    } finally {
+      browserCapture.sending = false;
+    }
+  }, 300);
+}
+
+async function applyCameraSource() {
+  const cameraId = activeSourceCameraId;
+  if (!cameraId) return;
+  const type = document.getElementById("source-type").value;
+  const statusEl = document.getElementById("source-status-msg");
+  const setStatus = (msg) => { if (statusEl) statusEl.textContent = msg; };
+  try {
+    if (type === "file") {
+      const path = document.getElementById("source-file-select").value;
+      if (!path) throw new Error("Pilih file video terlebih dahulu");
+      stopBrowserCapture(cameraId);
+      setStatus("Menerapkan sumber file...");
+      const res = await fetch(`${API_BASE}/api/cameras/${cameraId}/source`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "file", path }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      refreshCameraStream(cameraId);
+      closeSourceModal();
+      showToast("Sumber video file diterapkan");
+      return;
+    }
+
+    if (type === "browser") {
+      const facing = document.getElementById("source-facing").value || "environment";
+      setStatus("Mengaktifkan mode kamera browser di server...");
+      const res = await fetch(`${API_BASE}/api/cameras/${cameraId}/source`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "browser" }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setStatus("Meminta akses kamera perangkat...");
+      await startBrowserCapture(cameraId, facing);
+      refreshCameraStream(cameraId);
+      closeSourceModal();
+      showToast("Kamera perangkat aktif. Frame dikirim ke server untuk deteksi AI.");
+      return;
+    }
+
+    if (type === "rtsp") {
+      const url = buildRtspUrl();
+      const rtsp_transport = document.getElementById("rtsp-transport").value || "tcp";
+      stopBrowserCapture(cameraId);
+      setStatus("Menerapkan sumber RTSP...");
+      const res = await fetch(`${API_BASE}/api/cameras/${cameraId}/source`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "rtsp", url, rtsp_transport }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      refreshCameraStream(cameraId);
+      closeSourceModal();
+      showToast("Sumber RTSP diterapkan");
+      return;
+    }
+  } catch (err) {
+    console.error(err);
+    setStatus("");
+    alert(`Gagal menerapkan sumber: ${err.message}`);
+  }
+}
+
+// ==========================================================================
+// ROI Zona Aman (Kamera Gerbang) - gambar poligon di website
+// ==========================================================================
+let activeRoiCameraId = null;
+let roiPoints = []; // normalized [x,y]
+
+function updateRoiPointCount() {
+  const el = document.getElementById("roi-point-count");
+  if (el) el.textContent = `${roiPoints.length} titik`;
+}
+
+function getRoiCanvasContext() {
+  const canvas = document.getElementById("roi-canvas");
+  const img = document.getElementById("roi-base-image");
+  return { canvas, img, ctx: canvas ? canvas.getContext("2d") : null };
+}
+
+function syncRoiCanvasSize() {
+  const { canvas, img } = getRoiCanvasContext();
+  if (!canvas || !img) return;
+  const w = img.clientWidth;
+  const h = img.clientHeight;
+  if (w && h) {
+    canvas.width = w;
+    canvas.height = h;
+  }
+}
+
+function drawRoiPolygon() {
+  const { canvas, ctx } = getRoiCanvasContext();
+  if (!canvas || !ctx) return;
+  syncRoiCanvasSize();
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+  if (roiPoints.length === 0) { updateRoiPointCount(); return; }
+
+  const pts = roiPoints.map((p) => ({ x: p[0] * w, y: p[1] * h }));
+  if (pts.length >= 2) {
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+    if (pts.length >= 3) ctx.closePath();
+    ctx.fillStyle = "rgba(46, 204, 113, 0.18)";
+    ctx.strokeStyle = "rgba(46, 204, 113, 0.95)";
+    ctx.lineWidth = 2;
+    if (pts.length >= 3) ctx.fill();
+    ctx.stroke();
+  }
+  pts.forEach((pt, i) => {
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, 5, 0, Math.PI * 2);
+    ctx.fillStyle = "#00d084";
+    ctx.fill();
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "12px sans-serif";
+    ctx.fillText(String(i + 1), pt.x + 7, pt.y - 7);
+  });
+  updateRoiPointCount();
+}
+
+function onRoiCanvasClick(e) {
+  const canvas = document.getElementById("roi-canvas");
+  if (!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left) / rect.width;
+  const y = (e.clientY - rect.top) / rect.height;
+  if (x >= 0 && x <= 1 && y >= 0 && y <= 1) {
+    roiPoints.push([Math.round(x * 10000) / 10000, Math.round(y * 10000) / 10000]);
+    drawRoiPolygon();
+  }
+}
+
+async function reloadRoiFromServer() {
+  if (!activeRoiCameraId) return;
+  try {
+    const res = await fetch(`${API_BASE}/api/cameras/${activeRoiCameraId}/roi`);
+    if (res.ok) {
+      const data = await res.json();
+      roiPoints = Array.isArray(data.safe_polygon) ? data.safe_polygon.map((p) => [Number(p[0]), Number(p[1])]) : [];
+    }
+  } catch (e) {}
+  drawRoiPolygon();
+}
+
+async function openRoiModal(cameraId) {
+  activeRoiCameraId = cameraId;
+  roiPoints = [];
+  const img = document.getElementById("roi-base-image");
+  const canvas = document.getElementById("roi-canvas");
+  if (canvas) {
+    canvas.onclick = onRoiCanvasClick;
+  }
+  document.getElementById("modal-roi").classList.add("open");
+  if (img) {
+    img.onload = () => {
+      syncRoiCanvasSize();
+      drawRoiPolygon();
+    };
+    img.src = `${API_BASE}/api/cameras/${cameraId}/frame?t=${Date.now()}`;
+  }
+  await reloadRoiFromServer();
+  // redraw after modal layout
+  setTimeout(() => { syncRoiCanvasSize(); drawRoiPolygon(); }, 50);
+}
+
+function closeRoiModal() {
+  document.getElementById("modal-roi").classList.remove("open");
+  activeRoiCameraId = null;
+  roiPoints = [];
+}
+
+function undoRoiPoint() {
+  if (roiPoints.length > 0) {
+    roiPoints.pop();
+    drawRoiPolygon();
+  }
+}
+
+function clearRoiPoints() {
+  roiPoints = [];
+  drawRoiPolygon();
+}
+
+async function saveRoiPolygon() {
+  if (!activeRoiCameraId) return;
+  if (roiPoints.length < 3) {
+    alert("Poligon ROI minimal membutuhkan 3 titik.");
+    return;
+  }
+  try {
+    const res = await fetch(`${API_BASE}/api/cameras/${activeRoiCameraId}/roi`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ safe_polygon: roiPoints }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    await res.json();
+    showToast("ROI zona aman disimpan dan diterapkan");
+    closeRoiModal();
+    refreshCameraStream(activeRoiCameraId);
+  } catch (err) {
+    alert(`Gagal menyimpan ROI: ${err.message}`);
+  }
+}
+
+// Redraw ROI canvas on resize while modal open
+window.addEventListener("resize", () => {
+  const modal = document.getElementById("modal-roi");
+  if (modal && modal.classList.contains("open")) {
+    syncRoiCanvasSize();
+    drawRoiPolygon();
+  }
+});
 
 // ==========================================================================
 // Helper Controls (Fullscreen, Snapshot, Mute, Trigger Test)
