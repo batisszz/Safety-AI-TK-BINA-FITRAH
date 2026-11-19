@@ -7,9 +7,10 @@
 function getApiBaseUrl() {
   const saved = localStorage.getItem("safety_api_url");
   if (saved) return saved.replace(/\/+$/, "");
-  // Jika dibuka lewat browser di localhost port lain (misal 3000), default ke port 8000
-  if (window.location.port !== "8000" && window.location.protocol.startsWith("http")) {
-    return `${window.location.protocol}//${window.location.hostname}:8000`;
+  const h = window.location.hostname;
+  const isLocal = h === "localhost" || h === "127.0.0.1";
+  if (isLocal && window.location.port !== "8000") {
+    return `${window.location.protocol}//${h}:8000`;
   }
   return window.location.origin;
 }
